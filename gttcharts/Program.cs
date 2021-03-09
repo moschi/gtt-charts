@@ -1,4 +1,8 @@
-﻿using System;
+﻿using gttcharts.Models;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace gttcharts
 {
@@ -6,7 +10,14 @@ namespace gttcharts
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            ICollection<Issue> issues = null;
+            ICollection<Record> records = null;
+            using (var context = new GttContext())
+            {
+                issues = context.Issues.ToList();
+                records = context.Records.ToList();
+            }
+            Console.Read();
         }
     }
 }
