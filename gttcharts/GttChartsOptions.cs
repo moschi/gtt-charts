@@ -40,6 +40,7 @@ namespace gttcharts
 
         public GttChartJobOptionContainer GttChartJobOptions { get; set; } = new GttChartJobOptionContainer();
 
+        // todo: should we print all options per default?
         public void Print()
         {
             var currentColor = Console.ForegroundColor;
@@ -73,11 +74,14 @@ namespace gttcharts
         }
     }
 
+    // originally using a dictionary was planned - but it seems the whole property is overwritten, not allowing for default values.
+    // so this class acts as a proxy to make that work
+    // todo: do we need to fix this?
     public class GttChartJobOptionContainer : IEnumerable<KeyValuePair<string, GttChartJobOptions>>
     {
         public void AfterInit(int defaultHeight, int defaultWidth, int defaultYScaleWidth, int defaultXScaleHeight)
         {
-            // reload plotHeight from Default
+            // reload plotHeight from Default if they haven't been set through user config
             foreach (var option in InternalDict.Values.Where(v => v.PlotHeight == -1))
             {
                 option.PlotHeight = defaultHeight;
@@ -107,9 +111,6 @@ namespace gttcharts
             get => GetOption(key);
         }
 
-        // originally using a dictionary was planned - but it seems the whole property is overwritten, not allowing for default values.
-        // so this class acts as a proxy to make that work
-        // todo: do we need to fix this?
         private Dictionary<string, GttChartJobOptions> InternalDict = CreateDefaultJobOptions();
 
         private static Dictionary<string, GttChartJobOptions> CreateDefaultJobOptions()
