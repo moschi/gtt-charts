@@ -18,8 +18,20 @@ namespace gttcharts
         {
             using IHost host = CreateHostBuilder(args).Build();
             var chartBuilder = new GttChartsBuilder(Options);
-            chartBuilder.RunAll();
-            await host.RunAsync();
+            if (chartBuilder.InitSuccessful)
+            {
+                chartBuilder.RunAll();
+                Console.WriteLine("Finished!");
+                await host.StopAsync();
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Chartbuilder did not initialize correctly. Please see above output.");
+                Console.WriteLine("Exiting...");
+                await host.StopAsync();
+                return;
+            }
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder()

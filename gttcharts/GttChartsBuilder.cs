@@ -1,4 +1,5 @@
 ﻿using gttcharts.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -27,17 +28,36 @@ namespace gttcharts
         private readonly IEnumerable<Issue> _issues;
         private readonly IEnumerable<Record> _records;
 
+        public readonly bool InitSuccessful;
+
         public GttChartsBuilder(GttChartsOptions options)
         {
             _options = options;
-            _options.Print();
+            //_options.Print();
+
+            if (!File.Exists(_options.DatabasePath))
+            {
+                WriteError($"The database file wasn't found: {_options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
+                return;
+            }
+
             var opt = new DbContextOptionsBuilder<GttContext>().UseSqlite($"DataSource={_options.DatabasePath};");
 
-            using (var context = new GttContext(opt.Options))
+            try
             {
-                _issues = context.Issues.ToList();
-                _records = context.Records.ToList();
+                using (var context = new GttContext(opt.Options))
+                {
+                    _issues = context.Issues.ToList();
+                    _records = context.Records.ToList();
+                }
             }
+            catch (SqliteException ex)
+            {
+                WriteError($"An error occured when trying to load data from the database: {ex.Message}");
+                WriteWarning($"Make sure you have specified the correct path in appsettings.json and the database has a valid schema");
+                return;
+            }
+            InitSuccessful = true;
         }
 
         #region Graphing
@@ -457,7 +477,7 @@ namespace gttcharts
         {
             if (_options.UsernameMapping.Count == 0)
             {
-                WriteWarning("There was not username -> name mapping provided. Please do so in appsettings.json");
+                WriteWarning("There was no username -> name mapping provided. Consider doing so in appsettings.json");
                 return usernames;
             }
 
@@ -475,7 +495,7 @@ namespace gttcharts
         {
             if (!_options.UsernameMapping.TryGetValue(username, out string name))
             {
-                WriteWarning($"There was no mapping for username [{username}] provided. Please do so in appsettings.json");
+                WriteWarning($"There was no mapping for username [{username}] provided. Consider doing so in appsettings.json");
                 name = username;
             }
             return name;
