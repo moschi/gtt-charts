@@ -49,6 +49,7 @@ namespace gttcharts
                         { "-db", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
                         { "--database", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
 
+                        { "-ie", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
                         { "--ignoreempty", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
 
                         { "-o", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.OutputDirectory)}" },
