@@ -4,7 +4,7 @@ gtt-charts is a small cli application written in .NET 5 which allows the automat
 
 It requires [GitHub - kriskbx/gitlab-time-tracker: 🦊🕘 A command line interface for GitLab's time tracking feature](https://github.com/kriskbx/gitlab-time-tracker) to get the time tracking data from gitlab and builds on the scripts provided in [Samuel / GitLabTimeTrackingTutorial · GitLab (hsr.ch)](https://gitlab.dev.ifs.hsr.ch/murthy10/GitLabTimeTrackingTutorial). Said scripts were altered slightly to include Labels and Milestones in the issue table.
 
-The charts are generated using the awesome [ScottPlot/ScottPlot: Interactive Plotting Library for .NET (github.com)](https://github.com/ScottPlot/ScottPlot) project.
+The charts are generated using the awesome [ScottPlot/ScottPlot: Interactive Plotting Library for .NET (github.com)](https://github.com/ScottPlot/ScottPlot) library.
 
 The exported SQLite database is then loaded by gtt-charts and processed into a number of charts which are listed further down.
 
@@ -28,7 +28,7 @@ A complete example for a resulting markdown file can be found [here](./example/T
 
 ## Configuration options
 
-gttcharts allows for extensive configuration options. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the same directory as the executable.
+gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the same directory as the executable.
 
 ### List of configurations options
 
@@ -76,7 +76,7 @@ A list of labels that should be excluded from charts in which the label(s) of an
 
 #### IgnoreMilestones
 
-A list of Milestone names that should be excluded from charts in which the Milestone of an issue are a dimension. When creating a time report during a project where all milestones are already defined, unstarted milestones can excluded from reports with this option.
+A list of Milestone names that should be excluded from charts in which the Milestone of an issue is a dimension. When creating a time report during a project where all milestones are already defined, unstarted milestones can excluded from reports with this option.
 
 **Default:** empty
 
@@ -118,7 +118,7 @@ Path to the directory in which all output will be created.
 
 #### CreateMarkdownOutput
 
-Specified whether a markdown file containing all images should be created.
+Specifies whether a markdown file containing all images should be created.
 
 **Default:** true
 
@@ -154,7 +154,7 @@ Specifies whether a folder should be created in which all created charts (images
 
 #### DefaultPlotHeight
 
-Specifies the default height (in pixels) a chart should have. This is used as a fallback value when not specifying a height for a specific plot in the chart-job specific options.
+Specifies the default height (in pixels) a chart should have. This is used as a fallback value when not specifying a height for a specific plot in the chart-job options.
 
 **Default:** 600
 
@@ -166,7 +166,7 @@ Specifies the default height (in pixels) a chart should have. This is used as a 
 
 #### DefaultPlotWidth
 
-Specifies the default width (in pixels) a chart should have. This is used as a fallback value when not specifying a width for a specific plot in the chart-job specific options.
+Specifies the default width (in pixels) a chart should have. This is used as a fallback value when not specifying a width for a specific plot in the chart-job options.
 
 **Default:** 800
 
@@ -178,7 +178,7 @@ Specifies the default width (in pixels) a chart should have. This is used as a f
 
 #### DefaultYScaleWidth
 
-Specified the width (in pixels) the scale of the Y-axis will be. This is used as a fallback value when not specifying a YScaleWidth for a specific plot in the chart-job specific options.
+Specifies the width (in pixels) the scale of the Y-axis will be. This is used as a fallback value when not specifying a YScaleWidth for a specific plot in the chart-job options.
 
 **Default:** 20
 
@@ -190,7 +190,7 @@ Specified the width (in pixels) the scale of the Y-axis will be. This is used as
 
 #### DefaultXScaleHeight
 
-Specified the width (in pixels) the scale of the X-axis will be. This is used as a fallback value when not specifying a XScaleHeight for a specific plot in the chart-job specific options.
+Specifies the width (in pixels) the scale of the X-axis will be. This is used as a fallback value when not specifying a XScaleHeight for a specific plot in the chart-job options.
 
 **Default:** 20
 
@@ -214,7 +214,7 @@ Specifies the number of decimal points each numeric value should be rounded to.
 
 #### ProjectStart
 
-Specifies the date at which the project started. This values is needed to calculate data for charts in which the week number is a dimension.
+Specifies the date at which the project starts. This values is needed to calculate data for charts in which the week number is a dimension.
 
 **Default:** 22.02.2021
 
@@ -226,7 +226,7 @@ Specifies the date at which the project started. This values is needed to calcul
 
 #### ProjectEnd
 
-Specifies the date at which the project will end. This values is needed to calculate the total number of weeks which in turn is needed to create correct scale ticks.
+Specifies the date at which the project ends. This values is needed to calculate the total number of weeks which in turn is needed to create correct scale ticks.
 
 **Default:** 10.06.2021
 
@@ -256,49 +256,49 @@ A dictionary which allows to map gitlab usernames to names of project members.
 
 #### GttChartJobOptions
 
-This dictionary allow for the definition of chart-job specific options. A complete list of all chart-jobs and their settings is found further down in the document. The following paragraph explains the options possible for each chart-job. A JSON example of all settings is found at the bottom of this section.
+This dictionary allows for the definition of chart-job specific options. A complete list of all chart-jobs and their default titles is found further down in the document. The following paragraph explains the options possible for each chart-job. A example of these settings is found at the bottom of this section.
 
 
 
-##### GttChartJobOptions.Create
+##### Create
 
-Specified whether a chart-job should be run and included in the final result.
+Specifies whether a chart-job should be run and included in the final result.
 
 **Default:** true
 
 
 
-##### GttChartJobOptions.Title
+##### Title
 
-Specified the title a chart-job produces on the image and in the markdown.
-
-
-
-##### GttChartJobOptions.Filename
-
-Specified the filename for the image a chart-job will produce. Don't include a file extension in this option.
+Specifies the title a chart-job produces on the image and in the markdown.
 
 
 
-#### GttChartJobOptions.PlotHeight
+##### Filename
 
-Specified the height (in pixels) the chart produced by this job will have.
+Specifies the filename for the image a chart-job will produce. Don't include a file extension in this option.
+
+
+
+#### PlotHeight
+
+Specifies the height (in pixels) the chart produced by this job will have.
 
 **Default:** Value specified in ``DefaultPlotHeight``
 
 
 
-#### GttChartJobOptions.PlotWidth
+#### PlotWidth
 
-Specified the width (in pixels) the chart produced by this job will have.
+Specifies the width (in pixels) the chart produced by this job will have.
 
 **Default:** Value specified in ``DefaultPlotWidth``
 
 
 
-#### GttChartJobOptions.YScaleWidth
+#### YScaleWidth
 
-Specified the width (in pixels) the Y-axis of the chart produced by this job will have. This options is important for charts that have big ticks on the scales of the axis (e.g. the PerIssue chart).
+Specifies the width (in pixels) the Y-axis of the chart produced by this job will have. This options is important for charts that have long names on the scales of the axis (e.g. the PerIssue chart).
 
 **Default:** Value specified in ``DefaultYScaleWidth``
 
@@ -306,7 +306,7 @@ Specified the width (in pixels) the Y-axis of the chart produced by this job wil
 
 #### GttChartJobOptions.XScaleHeight
 
-Specified the height (in pixels) the X-axis ot the chart produced by this job will have. This options is important for charts that have big ticks on the scales of the axis (e.g. the PerIssue chart).
+Specifies the height (in pixels) the X-axis ot the chart produced by this job will have. This options is important for charts that have long names on the scales of the axis (e.g. the PerIssue chart).
 
 **Default:** Value specified in ``DefaultXScaleHeight``
 
@@ -314,13 +314,13 @@ Specified the height (in pixels) the X-axis ot the chart produced by this job wi
 
 #### GttChartJobOptions.XLabel
 
-Specified the label the X-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
+Specifies the label the X-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
 
 
 
 #### GttChartJobOptions.YLabel
 
-Specified the label the Y-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
+Specifies the label the Y-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
 
 
 
@@ -374,7 +374,7 @@ To build gttcharts, run the following command:
 dotnet build .\gttcharts.csproj
 ```
 
-The binaries are now located in the default folder for your setup. In said folder, place appsettings.json that you changed according to your needs.
+The created binaries are located in the default folder. In said folder, place appsettings.json that you changed according to your needs.
 
 ### Using gttcharts
 
@@ -387,15 +387,21 @@ The binaries are now located in the default folder for your setup. In said folde
    - total_estimate
    - labels
    - milestone
+- state
+   - created_at
+- closed
+   - updated_at
+   
+   also, make sure you include closed issues with the ``--closed`` flag
 
    the command I use looks like this:
 
    ```powershell
-   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --closed --file=./scripts/times.csv
+   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columsn=updated_at --closed --file=./scripts/times.csv
    ```
-
    
-
+   
+   
 2. run the *SQLite creation scripts* in the script folder
 
 3. run *gttcharts*, make sure you have appropriate appsettings.json
