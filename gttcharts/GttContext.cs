@@ -25,7 +25,7 @@ namespace gttcharts
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"DataSource=../../../Assets/example-db.db;");
+                optionsBuilder.UseSqlite($"DataSource=data.db;");
             }
         }
 
