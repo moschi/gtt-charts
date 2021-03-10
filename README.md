@@ -377,5 +377,23 @@ The binaries are now located in the default folder for your setup. In said folde
 ### Using gttcharts
 
 1. run a .csv export in *gitlab-time-tracker*
+   include all the following columns to create a valid table of issues:
+
+   - iid
+   - title
+   - spent
+   - total_estimate
+   - labels
+   - milestone
+
+   the command I use looks like this:
+
+   ```powershell
+   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --closed --file=./scripts/times.csv
+   ```
+
+   
+
 2. run the *SQLite creation scripts* in the script folder
+
 3. run *gttcharts*, make sure you have appropriate appsettings.json
