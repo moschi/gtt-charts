@@ -235,8 +235,10 @@ namespace gttcharts
         // defaults to DefaultPlotWidth
         public int PlotWidth { get; set; }
 
+        // defaults to DefaultXScaleHeight
         public int XScaleHeight { get; set; }
 
+        // defaults to DefaultYScaleWidth
         public int YScaleWidth { get; set; }
 
         // job specific

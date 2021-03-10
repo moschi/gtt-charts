@@ -515,8 +515,10 @@ namespace gttcharts
             plt.Title(jobOptions.Title);
             plt.XLabel(jobOptions.XLabel);
             plt.YLabel(jobOptions.YLabel);
-            plt.Legend(location: legendLocation.upperRight);
             plt.Layout(yScaleWidth: jobOptions.YScaleWidth, xScaleHeight: jobOptions.XScaleHeight);
+
+            plt.Legend(location: legendLocation.upperRight);
+
 
             string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
             plt.SaveFig(path);
