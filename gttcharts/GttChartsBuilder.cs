@@ -125,7 +125,7 @@ namespace gttcharts
                 new double[][] { estimates, spent },
                 showValues: true);
 
-            plt.Ticks(xTickRotation: 90);
+            plt.Ticks(xTickRotation: 45);
         }
 
         private void CreateTimePerUser(Plot plt)
@@ -516,6 +516,7 @@ namespace gttcharts
             plt.XLabel(jobOptions.XLabel);
             plt.YLabel(jobOptions.YLabel);
             plt.Legend(location: legendLocation.upperRight);
+            plt.Layout(yScaleWidth: jobOptions.YScaleWidth, xScaleHeight: jobOptions.XScaleHeight);
 
             string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
             plt.SaveFig(path);
