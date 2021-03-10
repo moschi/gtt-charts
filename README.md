@@ -348,6 +348,26 @@ Specifies the label the Y-axis of the chart produced by this job will have. Set 
 
 
 
+### Command Line arguments
+
+Some configuration can also be done trough command line arguments. Command line arguments override the configuration values in appsettings.json.
+The following table gives an overview:
+
+| Name                 | Short key | Alias key           |
+| -------------------- | --------- | ------------------- |
+| DatabasePath         | -db       | --database          |
+| IgnoreEmptyIssues    | -ie       | --ignoreempty       |
+| OutputDirectory      | -o        | --output            |
+| CreateMarkdownOutput | -md       | --createmarkdown    |
+| MarkdownOutputName   | -mdout    | --markdownoutput    |
+| DefaultPlotHeight    | -dph      | --defaultplotheight |
+| DefaultPlotWidth     | -dpw      | --defaultplotwidth  |
+| RoundToDecimals      | -r        | --roundtodecimals   |
+
+
+
+
+
 ### List of chart-jobs and their titles
 
 The **chart-job key** is what you need to use as the property-name under ``GttChartJobOptions`` to set the options for that specific job.
@@ -388,6 +408,7 @@ dotnet build .\gttcharts\gttcharts.csproj
    - labels
    - milestone
 - state
+   
    - created_at
 - closed
    - updated_at
