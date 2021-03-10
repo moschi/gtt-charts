@@ -21,7 +21,7 @@ namespace gttcharts
         public ICollection<string> IgnoreLabels { get; set; } = new List<string>();
         public ICollection<string> IgnoreMilestones { get; set; } = new List<string>() { "Test" };
         public ICollection<string> IgnoreUsers { get; set; } = new List<string>();
-        public string OutputDirectory { get; set; }
+        public string OutputDirectory { get; set; } = "output";
         public bool CreateMarkdownOutput { get; set; } = true;
         public string MarkdownOutputName { get; set; } = "Timereport";
         public bool MarkdownAssetFolder { get; set; } = true;
