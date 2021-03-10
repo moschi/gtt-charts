@@ -43,19 +43,32 @@ namespace gttcharts
 
                 configuration
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true);
+                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                    .AddCommandLine(args, new Dictionary<string, string>
+                    {
+                        { "-db", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
+                        { "--database", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
 
-                // todo: figure out why this isn't working
-                //.AddCommandLine(args, new Dictionary<string, string>
-                //    {
-                //        { "-db", "DatabasePath" },
-                //        { "--database", "DatabasePath" },
-                //        { "--ignoreempty", "IgnoreEmptyIssues" },
-                //        { "--output", "OutputDirectory" },
-                //        { "-o", "OutputDirectory" },
-                //        { "--createmarkdown", "CreateMarkdownOutput" },
-                //        { "-md", "CreateMarkdownOutput" }
-                //    });
+                        { "--ignoreempty", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
+
+                        { "-o", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.OutputDirectory)}" },
+                        { "--output", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.OutputDirectory)}" },
+
+                        { "-md", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.CreateMarkdownOutput)}" },
+                        { "--createmarkdown", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.CreateMarkdownOutput)}" },
+
+                        { "-mdout", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.MarkdownOutputName)}" },
+                        { "--markdownoutput", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.MarkdownOutputName)}" },
+
+                        { "-dph", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DefaultPlotHeight)}" },
+                        { "--defaultplotheight", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DefaultPlotHeight)}" },
+
+                        { "-dpw", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DefaultPlotWidth)}" },
+                        { "--defaultplotwidth", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DefaultPlotWidth)}" },
+
+                        { "-r", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.RoundToDecimals)}" },
+                        { "--roundtodecimals", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.RoundToDecimals)}" },
+                    });
 
                 IConfigurationRoot configurationRoot = configuration.Build();
 
