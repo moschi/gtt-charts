@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
@@ -12,6 +13,12 @@ namespace gttcharts.Models
         public double Spent { get; set; }
         public double TotalEstimate { get; set; }
         public string Labels { get; set; }
+
+        [NotMapped]
+        public ICollection<string> LabelList
+        {
+            get => Labels?.Split(',');
+        }
         public string Milestone { get; set; }
     }
 }

@@ -10,12 +10,16 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace gttcharts
 {
     public class GttChartsBuilder
     {
+        private string InternalImageOutputFolderPath = string.Empty;
+        private string RelativeMarkdownAssetFolderPath = string.Empty;
+
         // todo: this could potentially be loaded from appsettings
         private Dictionary<string, string> ChartTitles = new()
         {
@@ -25,8 +29,13 @@ namespace gttcharts
             { "PerUserPerWeekArea", "Time per User per Week (Area)" },
             { "PerUserPerWeekBar", "Time per User per Week (Bar)" },
             { "PerLabelBar", "Time per Label (Bar), estimate vs. recorded time" },
-            { "PerLabelPie", "Time per Label (Bar) [hours], estimate vs. recorded time" },
+            { "PerLabelPie", "Time per Label (Pie) [hours]" },
+            { "UserPerMilestone", "Time per User per Milestone (Bar) [hours]" },
+            { "MilestonePerUser", "Time per Milestone per User (Bar) [hours]" },
         };
+
+        private Dictionary<string, string> ChartFilePaths = new();
+        private Dictionary<string, string> ChartFileNames = new();
 
         private readonly GttChartsOptions _options;
         private readonly ICollection<Issue> _issues;
@@ -51,6 +60,14 @@ namespace gttcharts
             if (_options.OutputDirectory is not "" && _options.OutputDirectory is not null)
             {
                 Directory.CreateDirectory(_options.OutputDirectory);
+                InternalImageOutputFolderPath = _options.OutputDirectory;
+            }
+
+            if (_options.MarkdownAssetFolder && _options.CreateMarkdownOutput)
+            {
+                InternalImageOutputFolderPath = $"{((_options.OutputDirectory is not "" && _options.OutputDirectory is not null) ? $"{_options.OutputDirectory}/" : string.Empty)}{_options.MarkdownOutputName}.assets";
+                RelativeMarkdownAssetFolderPath = $"{_options.MarkdownOutputName}.assets";
+                Directory.CreateDirectory(InternalImageOutputFolderPath);
             }
 
             // todo: extract to dict to map names to functions
@@ -59,9 +76,27 @@ namespace gttcharts
             CreateGraph(CreateTimePerUser, "PerUser");
             CreateGraph(CreateTimePerUserPerWeekArea, "PerUserPerWeekArea");
             CreateGraph(CreateTimePerUserPerWeekBar, "PerUserPerWeekBar");
+            CreateGraph(CreateTimePerLabelBar, "PerLabelBar");
+            CreateGraph(CreateTimePerLabelPie, "PerLabelPie");
+            CreateGraph(CreateUserPerMilestone, "UserPerMilestone");
+            CreateGraph(CreateMilestonePerUser, "MilestonePerUser");
 
-            // todo: PerLabelBar
-            // todo: PerLabelPie
+            if (_options.CreateMarkdownOutput)
+            {
+                CreateMarkdown();
+            }
+        }
+
+        private void CreateMarkdown()
+        {
+            StringBuilder markdownBuilder = new();
+            foreach (var pair in ChartTitles)
+            {
+                markdownBuilder.AppendLine($"## {pair.Value}");
+                markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{ChartFileNames[pair.Key]})");
+            }
+
+            File.WriteAllText($"{_options.OutputDirectory}/{_options.MarkdownOutputName}.md", markdownBuilder.ToString());
         }
 
 
@@ -87,8 +122,6 @@ namespace gttcharts
                 new string[] { "estimated", "spent" },
                 new double[][] { estimates, spent },
                 showValues: true);
-
-            plt.Legend(location: legendLocation.upperRight);
         }
 
         private void CreateTimePerIssue(Plot plt)
@@ -105,7 +138,6 @@ namespace gttcharts
                 showValues: true);
 
             plt.Ticks(xTickRotation: 90);
-            plt.Legend(location: legendLocation.upperRight);
         }
 
         private void CreateTimePerUser(Plot plt)
@@ -123,7 +155,6 @@ namespace gttcharts
             double[] spent = perUser.Select(p => p.Spent).ToArray();
 
             plt.PlotPie(spent, users, showLabels: false, showValues: true);
-            plt.Legend();
 
             plt.Grid(false);
             plt.Frame(false);
@@ -191,8 +222,7 @@ namespace gttcharts
             plt.XLabel("Week");
             plt.YLabel("Hours");
             plt.XTicks(Enumerable.Range(1, GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray());
-
-            plt.Legend();
+            plt.AxisBounds(minY: 0);
         }
 
         private void CreateTimePerUserPerWeekBar(Plot plt)
@@ -222,21 +252,14 @@ namespace gttcharts
                               Weeks = list
                           };
 
-            var users = (from r in _records
-                        group r by r.User
-                        into lst
-                        select new
-                        {
-                            User = lst.Key
-                        }).Select(u => u.User).ToArray();
+            var users = GetUsernames();
             var datapoints = new double[users.Length][];
-            for(int i = 0; i < users.Length; i++)
+            for (int i = 0; i < users.Length; i++)
             {
                 datapoints[i] = new double[GetTotalWeekCount()];
-                for(int j = 0; j < GetTotalWeekCount(); j++)
+                for (int j = 0; j < GetTotalWeekCount(); j++)
                 {
-                    // todo: i have no idea if thats correct...
-                    datapoints[i][j] = perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(rs => rs.Records.Sum(r => r.Record.Time)));
+                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(rs => rs.Records.Sum(r => r.Record.Time))));
                 }
             }
 
@@ -245,12 +268,198 @@ namespace gttcharts
                 users,
                 datapoints
                 );
-            plt.Legend();
+        }
+
+        private void CreateTimePerLabelBar(Plot plt)
+        {
+            // count issues that have more than one label which isn't ignored
+            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 0) > 0)
+            {
+                Console.WriteLine($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+            }
+            var labels = GetLabels();
+            var inflatedIssues = from i in _issues
+                                 from l in labels
+                                 where i.LabelList.Contains(l)
+                                 select new
+                                 {
+                                     Label = l,
+                                     Issue = i
+                                 };
+
+            var perLabel = from ii in inflatedIssues
+                           group ii by ii.Label
+                           into list
+                           select new
+                           {
+                               Label = list.Key,
+                               Estimate = Round(list.Sum(i => i.Issue.TotalEstimate)),
+                               Spent = Round(list.Sum(i => i.Issue.Spent))
+                           };
+
+            double[] estimates = perLabel.Select(p => p.Estimate).ToArray();
+            double[] spents = perLabel.Select(p => p.Spent).ToArray();
+
+            plt.PlotBarGroups(
+                labels,
+                new string[] { "estimated", "spent" },
+                new double[][] { estimates, spents },
+                showValues: true);
+
+        }
+
+        private void CreateTimePerLabelPie(Plot plt)
+        {
+            // todo: remove duplicate code
+            // count issues that have more than one label which isn't ignored
+            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 0) > 0)
+            {
+                Console.WriteLine($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+            }
+            var labels = GetLabels();
+            var inflatedIssues = from i in _issues
+                                 from l in labels
+                                 where i.LabelList.Contains(l)
+                                 select new
+                                 {
+                                     Label = l,
+                                     Issue = i
+                                 };
+
+            var perLabel = from ii in inflatedIssues
+                           group ii by ii.Label
+                           into list
+                           select new
+                           {
+                               Label = list.Key,
+                               Estimate = Round(list.Sum(i => i.Issue.TotalEstimate)),
+                               Spent = Round(list.Sum(i => i.Issue.Spent))
+                           };
+
+            double[] spents = perLabel.Select(p => p.Spent).ToArray();
+
+            plt.PlotPie(spents, labels, showLabels: false, showValues: true);
+
+            plt.Grid(false);
+            plt.Frame(false);
+            plt.Ticks(false, false);
+        }
+
+        private void CreateUserPerMilestone(Plot plt)
+        {
+            var perUserAndMilestone = from r in _records
+                                      join i in _issues
+                                      on r.Iid equals i.Iid
+                                      where !_options.IgnoreMilestones.Contains(i.Milestone)
+                                      group r by new { i.Milestone, r.User }
+                                      into lst
+                                      select new
+                                      {
+                                          User = lst.Key.User,
+                                          Milestone = lst.Key.Milestone,
+                                          Records = lst
+                                      };
+
+            var perUser = from pu in perUserAndMilestone
+                          group pu by pu.User
+                          into list
+                          select new
+                          {
+                              User = list.Key,
+                              Milestones = list
+                          };
+
+            var users = GetUsernames();
+            var datapoints = new double[users.Length][];
+            for (int i = 0; i < users.Length; i++)
+            {
+                datapoints[i] = new double[GetMilestones().Length];
+                for (int j = 0; j < datapoints[i].Length; j++)
+                {
+                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                }
+            }
+
+            plt.PlotBarGroups(
+                GetMilestones(),
+                users,
+                datapoints,
+                showValues: true);
+        }
+
+        private void CreateMilestonePerUser(Plot plt)
+        {
+            var perUserAndMilestone = from r in _records
+                                      join i in _issues
+                                      on r.Iid equals i.Iid
+                                      where !_options.IgnoreMilestones.Contains(i.Milestone)
+                                      group r by new { i.Milestone, r.User }
+                                      into lst
+                                      select new
+                                      {
+                                          User = lst.Key.User,
+                                          Milestone = lst.Key.Milestone,
+                                          Records = lst
+                                      };
+
+            var perMilestone = from pu in perUserAndMilestone
+                               group pu by pu.Milestone
+                               into list
+                               select new
+                               {
+                                   Milestone = list.Key,
+                                   Users = list
+                               };
+            var milestones = GetMilestones();
+            var datapoints = new double[milestones.Length][];
+
+            for (int i = 0; i < milestones.Length; i++)
+            {
+                datapoints[i] = new double[GetUsernames().Length];
+                for (int j = 0; j < datapoints[i].Length; j++)
+                {
+                    datapoints[i][j] = Round(perMilestone.Where(pm => pm.Milestone == milestones[i]).Sum(us => us.Users.Where(u => u.User == GetUsernames()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                }
+            }
+            plt.PlotBarGroups(
+                GetUsernames(),
+                milestones,
+                datapoints,
+                showValues: true);
         }
 
         #endregion Graphing
 
         #region HelperFunctions
+
+        private string[] GetUsernames()
+        {
+            return (from r in _records
+                    where !_options.IgnoreUsers.Contains(r.User)
+                    group r by r.User
+                        into lst
+                    select new
+                    {
+                        User = lst.Key
+                    }).Select(u => u.User).ToArray();
+        }
+
+        private string[] GetMilestones()
+        {
+            return (from i in _issues
+                    where !_options.IgnoreMilestones.Contains(i.Milestone)
+                    group i by i.Milestone
+                    into lst
+                    select new
+                    {
+                        Milestone = lst.Key
+                    }).Select(m => m.Milestone).ToArray();
+        }
+
+        private string[] GetLabels()
+        {
+            return _issues.SelectMany(i => i.LabelList).Distinct().Except(_options.IgnoreLabels).ToArray();
+        }
 
         private void CreateGraph(Action<Plot> plot, string name)
         {
@@ -258,9 +467,12 @@ namespace gttcharts
 
             plot(plt);
             plt.Title(ChartTitles[name]);
+            plt.Legend(location: legendLocation.upperRight);
 
-            string path = $"./{_options.OutputDirectory}/{name}.png";
+            string path = $"./{InternalImageOutputFolderPath}/{name}.png";
             plt.SaveFig(path);
+            ChartFilePaths.Add(name, path);
+            ChartFileNames.Add(name, $"{name}.png");
             Console.WriteLine($"Created {name}.png -> {path}");
         }
 
@@ -271,7 +483,8 @@ namespace gttcharts
 
         private int WeekNrFromDate(DateTime date)
         {
-            DateTime runner = _options.ProjectStart;
+            // always compare to end of project week
+            DateTime runner = _options.ProjectStart.AddDays(7);
             int weeknr = 1;
             while (runner < date)
             {

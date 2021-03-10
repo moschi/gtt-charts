@@ -34,6 +34,7 @@ namespace gttcharts
                     .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true);
 
 
+                // todo: figure out why this isn't working
                 //.AddCommandLine(args, new Dictionary<string, string>
                 //    {
                 //        { "-db", "DatabasePath" },
@@ -53,9 +54,10 @@ namespace gttcharts
 
                 Options = options;
 
+                // todo: complete output of options
                 Console.WriteLine($"GttChartsOptions.IgnoreEmptyIssues={options.IgnoreEmptyIssues}");
                 Console.WriteLine($"GttChartsOptions.DatabasePath={options.DatabasePath}");
-                Console.WriteLine($"GttChartsOptions.DisplayIssueLabels={options.DisplayIssueLabels.Aggregate((a, b) => ($"{a},{b}"))}");
+                Console.WriteLine($"GttChartsOptions.DisplayIssueLabels={options.IgnoreLabels?.Aggregate((a, b) => ($"{a},{b}"))}");
                 Console.WriteLine($"GttChartsOptions.IgnoreMilestones={options.IgnoreMilestones?.Aggregate((a, b) => ($"{a},{b}"))}");
                 Console.WriteLine($"GttChartsOptions.OutputDirectory={options.OutputDirectory}");
 
