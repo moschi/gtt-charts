@@ -13,7 +13,7 @@ namespace gttcharts
     {
         public void AfterInit()
         {
-            GttChartJobOptions.AfterInit(DefaultPlotHeight, DefaultPlotWidth);
+            GttChartJobOptions.AfterInit(DefaultPlotHeight, DefaultPlotWidth, DefaultYScaleWidth, DefaultXScaleHeight);
         }
 
         public string DatabasePath { get; set; } = "data.db";
@@ -25,8 +25,14 @@ namespace gttcharts
         public bool CreateMarkdownOutput { get; set; } = true;
         public string MarkdownOutputName { get; set; } = "Timereport";
         public bool MarkdownAssetFolder { get; set; } = true;
+
         public int DefaultPlotHeight { get; set; } = 600;
         public int DefaultPlotWidth { get; set; } = 800;
+
+        public int DefaultYScaleWidth { get; set; } = 20;
+        public int DefaultXScaleHeight { get; set; } = 20;
+
+
         public int RoundToDecimals { get; set; } = 2;
         public DateTime ProjectStart { get; set; } = new DateTime(2021, 02, 22);
         public DateTime ProjectEnd { get; set; } = new DateTime(2021, 06, 10); // todo: fix date
@@ -69,7 +75,7 @@ namespace gttcharts
 
     public class GttChartJobOptionContainer : IEnumerable<KeyValuePair<string, GttChartJobOptions>>
     {
-        public void AfterInit(int defaultHeight, int defaultWidth)
+        public void AfterInit(int defaultHeight, int defaultWidth, int defaultYScaleWidth, int defaultXScaleHeight)
         {
             // reload plotHeight from Default
             foreach (var option in InternalDict.Values.Where(v => v.PlotHeight == -1))
@@ -81,6 +87,18 @@ namespace gttcharts
             foreach (var option in InternalDict.Values.Where(v => v.PlotWidth == -1))
             {
                 option.PlotWidth = defaultWidth;
+            }
+
+            // reload yScaleWidth from Default
+            foreach (var option in InternalDict.Values.Where(v => v.YScaleWidth == -1))
+            {
+                option.YScaleWidth = defaultYScaleWidth;
+            }
+
+            // reload xScaleHeight from Default
+            foreach (var option in InternalDict.Values.Where(v => v.XScaleHeight == -1))
+            {
+                option.XScaleHeight = defaultXScaleHeight;
             }
         }
 
@@ -104,6 +122,8 @@ namespace gttcharts
                     Filename = name,
                     PlotHeight = -1,
                     PlotWidth = -1,
+                    YScaleWidth = -1,
+                    XScaleHeight = -1,
                     Title = title,
                     XLabel = xlabel,
                     YLabel = ylabel
@@ -214,6 +234,10 @@ namespace gttcharts
 
         // defaults to DefaultPlotWidth
         public int PlotWidth { get; set; }
+
+        public int XScaleHeight { get; set; }
+
+        public int YScaleWidth { get; set; }
 
         // job specific
         public string XLabel { get; set; }
