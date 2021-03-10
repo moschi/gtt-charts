@@ -399,7 +399,7 @@ The created binaries are located in the default folder. In said folder, place ap
    the command I use looks like this:
 
    ```powershell
-   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columsn=updated_at --closed --file=./scripts/times.csv
+   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./scripts/times.csv
    ```
    
    
