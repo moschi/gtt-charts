@@ -48,6 +48,16 @@ namespace gttcharts
                 entity.Property(e => e.Title).HasColumnName("title");
 
                 entity.Property(e => e.TotalEstimate).HasColumnName("total_estimate");
+
+                entity.Property(e => e.State).HasColumnName("state");
+
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+                entity.Property(e => e.Closed).HasColumnName("closed").HasConversion(
+                    v => v.ToString(),
+                    v => v == "true");
+
+                entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             });
 
             modelBuilder.Entity<Record>(entity =>

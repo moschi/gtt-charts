@@ -20,5 +20,10 @@ namespace gttcharts.Models
             get => Labels?.Split(',');
         }
         public string Milestone { get; set; }
+
+        public string State { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool Closed { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

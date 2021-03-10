@@ -27,13 +27,23 @@ def save(issues, records, output):
         pass
     connection = sqlite3.connect(db_file)
     cursor = connection.cursor()
-    cursor.execute("CREATE TABLE issue (iid,title,spent,total_estimate,labels,milestone);")
+    cursor.execute("CREATE TABLE issue (iid,title,spent,total_estimate,labels,milestone,state,created_at,closed,updated_at);")
     cursor.execute("CREATE TABLE record (user,date,type,iid,time);")
 
+    issues_to_db = []
     with open(issues, 'r') as file:
         dict_reader = csv.DictReader(file)
-        issues_to_db = [(entry['iid'], entry['title'], convert_to_hours(entry['spent']), convert_to_hours(entry['total_estimate']), entry['labels'], entry['milestone']) for entry in
-                        dict_reader]
+        for entry in dict_reader:
+            created_date = entry['created_at'].split()
+            created_date, created_time = created_date[0], created_date[1]
+            created_date = created_date.split(".")
+            created_date = created_date[2] + '-' + created_date[1] + '-' + created_date[0] + ' ' + created_time
+
+            updated_date = entry['updated_at'].split()
+            updated_date, updated_time = updated_date[0], updated_date[1]
+            updated_date = updated_date.split(".")
+            updated_date = updated_date[2] + '-' + updated_date[1] + '-' + updated_date[0] + ' ' + updated_time
+            issues_to_db.append((entry['iid'], entry['title'], convert_to_hours(entry['spent']), convert_to_hours(entry['total_estimate']), entry['labels'], entry['milestone'], entry['state'], created_date, entry['closed'], updated_date))
 
     records_to_db = []
     with open(records, 'r') as file:
@@ -45,7 +55,7 @@ def save(issues, records, output):
             date = date[2] + '-' + date[1] + '-' + date[0] + ' ' + time
             records_to_db.append((entry['user'], date, entry['type'], entry['iid'], convert_to_hours(entry['time'])))
 
-    cursor.executemany("INSERT INTO issue (iid,title,spent,total_estimate,labels,milestone) VALUES (?, ?, ?, ?, ?, ?);", issues_to_db)
+    cursor.executemany("INSERT INTO issue (iid,title,spent,total_estimate,labels,milestone,state,created_at,closed,updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", issues_to_db)
     cursor.executemany("INSERT INTO record (user,date,type,iid,time) VALUES (?, ?, ?, ?, ?);", records_to_db)
     connection.commit()
 
