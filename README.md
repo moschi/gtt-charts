@@ -30,7 +30,7 @@ To set up ``gitlab-time-tracker`` please follow the documentation provided there
 
 ## Configuration options
 
-gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the same directory as the executable.
+gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
 
 ### List of configurations options
 
@@ -368,15 +368,13 @@ The **chart-job key** is what you need to use as the property-name under ``GttCh
 
 ## Building gttcharts
 
-Clone this repo and go into the gttcharts folder which contains gttcharts.csproj
+Clone this repo
 
 To build gttcharts, run the following command:
 
 ```powershell
-dotnet build .\gttcharts.csproj
+dotnet build .\gttcharts\gttcharts.csproj
 ```
-
-The created binaries are located in the default folder. In said folder, place appsettings.json that you changed according to your needs.
 
 ### Using gttcharts
 
@@ -407,3 +405,10 @@ The created binaries are located in the default folder. In said folder, place ap
 2. run the *SQLite creation scripts* in the script folder
 
 3. run *gttcharts*, make sure you have appropriate appsettings.json
+   You can run gttcharts from the top level directory of this repo with the following command:
+
+   ```powershell
+   dotnet run --project .\gttcharts\gttcharts.csproj
+   ```
+
+   
