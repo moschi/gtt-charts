@@ -20,12 +20,12 @@ namespace gttcharts
         private string InternalImageOutputFolderPath = string.Empty;
         private string RelativeMarkdownAssetFolderPath = string.Empty;
 
-        private Dictionary<string, string> ChartFilePaths = new();
-        private Dictionary<string, string> ChartFileNames = new();
+        private readonly Dictionary<string, string> ChartFilePaths = new();
+        private readonly Dictionary<string, string> ChartFileNames = new();
 
         private readonly GttChartsOptions _options;
-        private readonly ICollection<Issue> _issues;
-        private readonly ICollection<Record> _records;
+        private readonly IEnumerable<Issue> _issues;
+        private readonly IEnumerable<Record> _records;
 
         public GttChartsBuilder(GttChartsOptions options)
         {
@@ -186,6 +186,7 @@ namespace gttcharts
                 double[] ys = new double[GetTotalWeekCount()];
                 for (int i = 0; i < GetTotalWeekCount(); i++)
                 {
+                    // we don't need to round here since the values aren't displayed in the chart
                     ys[i] = pu.Weeks.Where(w => w.Week == i + 1).Sum(w => w.Records.Sum(r => r.Record.Time));
                 }
                 for (int i = 0; i < ys.Length; i++)
