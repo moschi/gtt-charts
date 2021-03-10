@@ -6,7 +6,7 @@ It builds on [GitHub - kriskbx/gitlab-time-tracker: 🦊🕘 A command line inte
 
 The exported SQLite database is then loaded by gtt-charts and processed into a number of charts which are listed further down.
 
-
+A complete example for a resulting markdown file can be found [here](./example/Timereport.md).
 
 ## Requirements
 
