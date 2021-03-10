@@ -33,7 +33,6 @@ namespace gttcharts
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true);
 
-
                 // todo: figure out why this isn't working
                 //.AddCommandLine(args, new Dictionary<string, string>
                 //    {
@@ -51,16 +50,8 @@ namespace gttcharts
                 GttChartsOptions options = new();
                 configurationRoot.GetSection(nameof(GttChartsOptions))
                                  .Bind(options);
-
+                options.AfterInit();
                 Options = options;
-
-                // todo: complete output of options
-                Console.WriteLine($"GttChartsOptions.IgnoreEmptyIssues={options.IgnoreEmptyIssues}");
-                Console.WriteLine($"GttChartsOptions.DatabasePath={options.DatabasePath}");
-                Console.WriteLine($"GttChartsOptions.DisplayIssueLabels={options.IgnoreLabels?.Aggregate((a, b) => ($"{a},{b}"))}");
-                Console.WriteLine($"GttChartsOptions.IgnoreMilestones={options.IgnoreMilestones?.Aggregate((a, b) => ($"{a},{b}"))}");
-                Console.WriteLine($"GttChartsOptions.OutputDirectory={options.OutputDirectory}");
-
             });
     }
 }

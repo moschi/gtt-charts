@@ -20,20 +20,6 @@ namespace gttcharts
         private string InternalImageOutputFolderPath = string.Empty;
         private string RelativeMarkdownAssetFolderPath = string.Empty;
 
-        // todo: this could potentially be loaded from appsettings
-        private Dictionary<string, string> ChartTitles = new()
-        {
-            { "PerIssue", "Time per Issue [hours]" },
-            { "PerMilestone", "Time per Milestone [hours], estimate vs. recorded time" },
-            { "PerUser", "Time per User [hours]" },
-            { "PerUserPerWeekArea", "Time per User per Week (Area)" },
-            { "PerUserPerWeekBar", "Time per User per Week (Bar)" },
-            { "PerLabelBar", "Time per Label (Bar), estimate vs. recorded time" },
-            { "PerLabelPie", "Time per Label (Pie) [hours]" },
-            { "UserPerMilestone", "Time per User per Milestone (Bar) [hours]" },
-            { "MilestonePerUser", "Time per Milestone per User (Bar) [hours]" },
-        };
-
         private Dictionary<string, string> ChartFilePaths = new();
         private Dictionary<string, string> ChartFileNames = new();
 
@@ -44,6 +30,7 @@ namespace gttcharts
         public GttChartsBuilder(GttChartsOptions options)
         {
             _options = options;
+            _options.Print();
             var opt = new DbContextOptionsBuilder<GttContext>().UseSqlite($"DataSource={_options.DatabasePath};");
 
             using (var context = new GttContext(opt.Options))
@@ -90,13 +77,14 @@ namespace gttcharts
         private void CreateMarkdown()
         {
             StringBuilder markdownBuilder = new();
-            foreach (var pair in ChartTitles)
+            foreach (var pair in _options.GttChartJobOptions.Where(kvp => kvp.Value.Create == true))
             {
-                markdownBuilder.AppendLine($"## {pair.Value}");
+                markdownBuilder.AppendLine($"## {pair.Value.Title}");
                 markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{ChartFileNames[pair.Key]})");
             }
 
             File.WriteAllText($"{_options.OutputDirectory}/{_options.MarkdownOutputName}.md", markdownBuilder.ToString());
+            WriteSuccess($"Created Markdown Output --> {_options.OutputDirectory}/{_options.MarkdownOutputName}.md");
         }
 
 
@@ -143,6 +131,7 @@ namespace gttcharts
         private void CreateTimePerUser(Plot plt)
         {
             var perUser = from r in _records
+                          where !_options.IgnoreUsers.Contains(r.User)
                           group r by r.User
                           into lst
                           select new
@@ -151,7 +140,7 @@ namespace gttcharts
                               Spent = Round(lst.Sum(r => r.Time))
                           };
 
-            string[] users = perUser.Select(p => p.User).ToArray();
+            string[] users = GetMappedNames(perUser.Select(p => p.User).ToArray());
             double[] spent = perUser.Select(p => p.Spent).ToArray();
 
             plt.PlotPie(spent, users, showLabels: false, showValues: true);
@@ -164,6 +153,7 @@ namespace gttcharts
         private void CreateTimePerUserPerWeekArea(Plot plt)
         {
             var perUserAndWeek = from re in (from r in _records
+                                             where !_options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
                                                  Record = r,
@@ -193,7 +183,6 @@ namespace gttcharts
 
             foreach (var pu in perUser)
             {
-                // todo: fix totalWeekCount
                 double[] ys = new double[GetTotalWeekCount()];
                 for (int i = 0; i < GetTotalWeekCount(); i++)
                 {
@@ -213,7 +202,7 @@ namespace gttcharts
             int puIndex = 0;
             foreach (var ys in yss)
             {
-                var sig = plt.PlotSignal(ys, label: perUser.ElementAt(puIndex++).User);
+                var sig = plt.PlotSignal(ys, label: GetMappedName(perUser.ElementAt(puIndex++).User));
                 sig.fillType = FillType.FillBelow;
                 sig.fillColor1 = sig.color;
                 sig.gradientFillColor1 = sig.color;
@@ -229,6 +218,7 @@ namespace gttcharts
         {
             // todo: remove duplicate code
             var perUserAndWeek = from re in (from r in _records
+                                             where !_options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
                                                  Record = r,
@@ -265,7 +255,7 @@ namespace gttcharts
 
             plt.PlotBarGroups(
                 Enumerable.Range(1, GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray(),
-                users,
+                GetMappedNames(users),
                 datapoints
                 );
         }
@@ -273,9 +263,14 @@ namespace gttcharts
         private void CreateTimePerLabelBar(Plot plt)
         {
             // count issues that have more than one label which isn't ignored
-            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 0) > 0)
+            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
             {
-                Console.WriteLine($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                WriteInfo($"The following issues will be reported multiple times:");
+                foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
+                {
+                    WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                }
             }
             var labels = GetLabels();
             var inflatedIssues = from i in _issues
@@ -311,10 +306,16 @@ namespace gttcharts
         private void CreateTimePerLabelPie(Plot plt)
         {
             // todo: remove duplicate code
+
             // count issues that have more than one label which isn't ignored
-            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 0) > 0)
+            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
             {
-                Console.WriteLine($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                WriteInfo($"The following issues will be reported multiple times:");
+                foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
+                {
+                    WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                }
             }
             var labels = GetLabels();
             var inflatedIssues = from i in _issues
@@ -351,6 +352,7 @@ namespace gttcharts
                                       join i in _issues
                                       on r.Iid equals i.Iid
                                       where !_options.IgnoreMilestones.Contains(i.Milestone)
+                                      where !_options.IgnoreUsers.Contains(r.User)
                                       group r by new { i.Milestone, r.User }
                                       into lst
                                       select new
@@ -382,7 +384,7 @@ namespace gttcharts
 
             plt.PlotBarGroups(
                 GetMilestones(),
-                users,
+                GetMappedNames(users),
                 datapoints,
                 showValues: true);
         }
@@ -393,6 +395,7 @@ namespace gttcharts
                                       join i in _issues
                                       on r.Iid equals i.Iid
                                       where !_options.IgnoreMilestones.Contains(i.Milestone)
+                                      where !_options.IgnoreUsers.Contains(r.User)
                                       group r by new { i.Milestone, r.User }
                                       into lst
                                       select new
@@ -422,7 +425,7 @@ namespace gttcharts
                 }
             }
             plt.PlotBarGroups(
-                GetUsernames(),
+                GetMappedNames(),
                 milestones,
                 datapoints,
                 showValues: true);
@@ -444,6 +447,39 @@ namespace gttcharts
                     }).Select(u => u.User).ToArray();
         }
 
+        private string[] GetMappedNames()
+        {
+            return GetMappedNames(GetUsernames());
+        }
+
+        private string[] GetMappedNames(string[] usernames)
+        {
+            if (_options.UsernameMapping.Count == 0)
+            {
+                WriteWarning("There was not username -> name mapping provided. Please do so in appsettings.json");
+                return usernames;
+            }
+
+            string[] names = new string[usernames.Length];
+
+            for (int i = 0; i < usernames.Length; i++)
+            {
+                names[i] = GetMappedName(usernames[i]);
+            }
+
+            return names;
+        }
+
+        private string GetMappedName(string username)
+        {
+            if (!_options.UsernameMapping.TryGetValue(username, out string name))
+            {
+                WriteWarning($"There was no mapping for username [{username}] provided.");
+                name = username;
+            }
+            return name;
+        }
+
         private string[] GetMilestones()
         {
             return (from i in _issues
@@ -463,17 +499,29 @@ namespace gttcharts
 
         private void CreateGraph(Action<Plot> plot, string name)
         {
-            var plt = new ScottPlot.Plot(_options.PlotWidth, _options.PlotHeight);
+            var jobOptions = _options.GttChartJobOptions[name];
+            if (!jobOptions.Create)
+            {
+                WriteInfo($"Skipping chart job {name} as per settings");
+                return;
+            }
 
+            var plt = new ScottPlot.Plot(jobOptions.PlotWidth, jobOptions.PlotHeight);
+
+            // call custom plot function for each job
             plot(plt);
-            plt.Title(ChartTitles[name]);
+
+            // apply jobOptions which are defined in appsettings.json
+            plt.Title(jobOptions.Title);
+            plt.XLabel(jobOptions.XLabel);
+            plt.YLabel(jobOptions.YLabel);
             plt.Legend(location: legendLocation.upperRight);
 
-            string path = $"./{InternalImageOutputFolderPath}/{name}.png";
+            string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
             plt.SaveFig(path);
             ChartFilePaths.Add(name, path);
             ChartFileNames.Add(name, $"{name}.png");
-            Console.WriteLine($"Created {name}.png -> {path}");
+            WriteSuccess($"Created {name}.png -> {path}");
         }
 
         private double Round(double d)
@@ -498,6 +546,38 @@ namespace gttcharts
         private int GetTotalWeekCount()
         {
             return WeekNrFromDate(_options.ProjectEnd);
+        }
+
+        #endregion
+
+        #region ConsoleOutputStyling
+
+        private void WriteInfo(string text)
+        {
+            WriteWithColor(text, ConsoleColor.DarkCyan);
+        }
+
+        private void WriteSuccess(string text)
+        {
+            WriteWithColor(text, ConsoleColor.DarkGreen);
+        }
+
+        private void WriteWarning(string text)
+        {
+            WriteWithColor(text, ConsoleColor.DarkYellow);
+        }
+
+        private void WriteError(string text)
+        {
+            WriteWithColor(text, ConsoleColor.DarkRed);
+        }
+
+        private void WriteWithColor(string text, ConsoleColor color)
+        {
+            var currentColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(text);
+            Console.ForegroundColor = currentColor;
         }
 
         #endregion
