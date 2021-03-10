@@ -26,7 +26,7 @@ A complete example for a resulting markdown file can be found [here](./example/T
 
 ## Configuration options
 
-gttcharts allows for extensive configuration options. A example of the configuration file can be found [here](./appsettings.json). The configuration file named *appsettings.json* needs to be in the same directory as the executable.
+gttcharts allows for extensive configuration options. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the same directory as the executable.
 
 ### List of configurations options
 
