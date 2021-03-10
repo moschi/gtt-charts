@@ -353,16 +353,16 @@ Specifies the label the Y-axis of the chart produced by this job will have. Set 
 Some configuration can also be done trough command line arguments. Command line arguments override the configuration values in appsettings.json.
 The following table gives an overview:
 
-| Name                 | Short key | Alias key           |
-| -------------------- | --------- | ------------------- |
-| DatabasePath         | -db       | --database          |
-| IgnoreEmptyIssues    | -ie       | --ignoreempty       |
-| OutputDirectory      | -o        | --output            |
-| CreateMarkdownOutput | -md       | --createmarkdown    |
-| MarkdownOutputName   | -mdout    | --markdownoutput    |
-| DefaultPlotHeight    | -dph      | --defaultplotheight |
-| DefaultPlotWidth     | -dpw      | --defaultplotwidth  |
-| RoundToDecimals      | -r        | --roundtodecimals   |
+| Name                 | Short key | Alias key           | Expects      |
+| -------------------- | --------- | ------------------- | ------------ |
+| DatabasePath         | -db       | --database          | string       |
+| IgnoreEmptyIssues    | -ie       | --ignoreempty       | true / false |
+| OutputDirectory      | -o        | --output            | string       |
+| CreateMarkdownOutput | -md       | --createmarkdown    | true / false |
+| MarkdownOutputName   | -mdout    | --markdownoutput    | string       |
+| DefaultPlotHeight    | -dph      | --defaultplotheight | integer      |
+| DefaultPlotWidth     | -dpw      | --defaultplotwidth  | integer      |
+| RoundToDecimals      | -r        | --roundtodecimals   | integer      |
 
 
 
