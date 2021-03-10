@@ -20,8 +20,7 @@ namespace gttcharts
         private string InternalImageOutputFolderPath = string.Empty;
         private string RelativeMarkdownAssetFolderPath = string.Empty;
 
-        private Dictionary<string, string> ChartFilePaths = new();
-        private Dictionary<string, string> ChartFileNames = new();
+        private Dictionary<string, ICollection<string>> ChartFileNames = new();
 
         private readonly GttChartsOptions _options;
         private readonly ICollection<Issue> _issues;
@@ -67,6 +66,21 @@ namespace gttcharts
             CreateGraph(CreateTimePerLabelPie, "PerLabelPie");
             CreateGraph(CreateUserPerMilestone, "UserPerMilestone");
             CreateGraph(CreateMilestonePerUser, "MilestonePerUser");
+            CreateGraph(CreateProjectBurndown, "ProjectBurndown");
+
+            // special case of repetition for MilestonesBurndown
+            foreach (var milestone in GetMilestones())
+            {
+                var generalOptions = _options.GttChartJobOptions["MilestonesBurndown"];
+                string originalname = generalOptions.Filename;
+                string originalTitle = generalOptions.Title;
+                generalOptions.Filename = $"{generalOptions.Filename}_{milestone}";
+                generalOptions.Title = $"{generalOptions.Title}: {milestone}";
+                CreateGraph((plt) => CreateMilestonesBurndown(plt, milestone), generalOptions, "MilestonesBurndown", $"MilestonesBurndown_{milestone}");
+
+                generalOptions.Filename = originalname;
+                generalOptions.Title = originalTitle;
+            }
 
             if (_options.CreateMarkdownOutput)
             {
@@ -80,7 +94,10 @@ namespace gttcharts
             foreach (var pair in _options.GttChartJobOptions.Where(kvp => kvp.Value.Create == true))
             {
                 markdownBuilder.AppendLine($"## {pair.Value.Title}");
-                markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{ChartFileNames[pair.Key]})");
+                foreach (string imgPath in ChartFileNames[pair.Key])
+                {
+                    markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{imgPath})");
+                }
             }
 
             File.WriteAllText($"{_options.OutputDirectory}/{_options.MarkdownOutputName}.md", markdownBuilder.ToString());
@@ -431,6 +448,102 @@ namespace gttcharts
                 showValues: true);
         }
 
+        private void CreateProjectBurndown(Plot plt)
+        {
+            var openedIssuesByDay = from i in _issues
+                                    group i by i.CreatedAt.Date
+                                    into lst
+                                    select new
+                                    {
+                                        Date = lst.Key,
+                                        Issues = lst
+                                    };
+
+            var closedIssuesByDay = from i in _issues
+                                    where i.Closed == true
+                                    group i by i.UpdatedAt.Date
+                                    into lst
+                                    select new
+                                    {
+                                        Date = lst.Key,
+                                        Issues = lst
+                                    };
+
+            DateTime minDate = openedIssuesByDay.Union(closedIssuesByDay).Min(oibd => oibd.Date);
+            DateTime maxDate = openedIssuesByDay.Union(closedIssuesByDay).Max(oibd => oibd.Date);
+            double numOfDays = maxDate.Subtract(minDate).TotalDays;
+
+            double[] closedIssues = new double[(int)numOfDays];
+            for (int i = 0; i < numOfDays; i++)
+            {
+                closedIssues[i] = closedIssuesByDay.Where(cibd => cibd.Date == minDate.AddDays(i * 1).Date).Sum(cibd => cibd.Issues.Count());
+            }
+
+            double[] openIssues = new double[(int)numOfDays];
+            openIssues[0] = openedIssuesByDay.Where(oibd => oibd.Date == minDate.Date).Sum(oibd => oibd.Issues.Count()) - closedIssues[0];
+            for (int i = 1; i < numOfDays; i++)
+            {
+                // open issues of the current day =  already open issues (previous day) + newly openend issues on this day - closed issues on this day
+                openIssues[i] = openIssues[i - 1] + openedIssuesByDay.Where(oibd => oibd.Date == minDate.AddDays(i * 1).Date).Sum(oibd => oibd.Issues.Count()) - closedIssues[i];
+            }
+
+            plt.PlotSignal(openIssues, label: "open issues");
+            plt.XTicks(Enumerable.Range(0, (int)numOfDays).Select((i) => minDate.AddDays(i * 1).ToShortDateString()).ToArray());
+            plt.Ticks(xTickRotation: 45);
+        }
+
+        private void CreateMilestonesBurndown(Plot plt, string milestoneName)
+        {
+            var openedIssuesByDay = from i in _issues
+                                    where i.Milestone == milestoneName
+                                    group i by i.CreatedAt.Date
+                                    into lst
+                                    select new
+                                    {
+                                        Date = lst.Key,
+                                        Issues = lst
+                                    };
+
+            var closedIssuesByDay = from i in _issues
+                                    where i.Milestone == milestoneName
+                                    where i.Closed == true
+                                    group i by i.UpdatedAt.Date
+                                    into lst
+                                    select new
+                                    {
+                                        Date = lst.Key,
+                                        Issues = lst
+                                    };
+
+            DateTime minDate = openedIssuesByDay.Union(closedIssuesByDay).Min(oibd => oibd.Date);
+            DateTime maxDate = openedIssuesByDay.Union(closedIssuesByDay).Max(oibd => oibd.Date);
+            double numOfDays = maxDate.Subtract(minDate).TotalDays + 1;
+
+            //if (numOfDays < 1)
+            //{
+            //    WriteWarning($"Burndown for Milestone[{milestoneName}]: {numOfDays} between oldest creation and newest update of issues, skipping...");
+            //    return;
+            //}
+
+            double[] closedIssues = new double[(int)numOfDays];
+            for (int i = 0; i < numOfDays; i++)
+            {
+                closedIssues[i] = closedIssuesByDay.Where(cibd => cibd.Date == minDate.AddDays(i * 1).Date).Sum(cibd => cibd.Issues.Count());
+            }
+
+            double[] openIssues = new double[(int)numOfDays];
+            openIssues[0] = openedIssuesByDay.Where(oibd => oibd.Date == minDate.Date).Sum(oibd => oibd.Issues.Count()) - closedIssues[0];
+            for (int i = 1; i < numOfDays; i++)
+            {
+                // open issues of the current day =  already open issues (previous day) + newly openend issues on this day - closed issues on this day
+                openIssues[i] = openIssues[i - 1] + openedIssuesByDay.Where(oibd => oibd.Date == minDate.AddDays(i * 1).Date).Sum(oibd => oibd.Issues.Count()) - closedIssues[i];
+            }
+
+            plt.PlotSignal(openIssues, label: "open issues");
+            plt.XTicks(Enumerable.Range(0, (int)numOfDays).Select((i) => minDate.AddDays(i * 1).ToShortDateString()).ToArray());
+            plt.Ticks(xTickRotation: 45);
+        }
+
         #endregion Graphing
 
         #region HelperFunctions
@@ -500,9 +613,39 @@ namespace gttcharts
         private void CreateGraph(Action<Plot> plot, string name)
         {
             var jobOptions = _options.GttChartJobOptions[name];
+            CreateGraph(plot, jobOptions, name, name);
+            //if (!jobOptions.Create)
+            //{
+            //    WriteInfo($"Skipping chart job {name} as per settings");
+            //    return;
+            //}
+
+            //var plt = new ScottPlot.Plot(jobOptions.PlotWidth, jobOptions.PlotHeight);
+
+            //// call custom plot function for each job
+            //plot(plt);
+
+            //// apply jobOptions which are defined in appsettings.json
+            //plt.Title(jobOptions.Title);
+            //plt.XLabel(jobOptions.XLabel);
+            //plt.YLabel(jobOptions.YLabel);
+            //plt.Layout(yScaleWidth: jobOptions.YScaleWidth, xScaleHeight: jobOptions.XScaleHeight);
+
+            //plt.Legend(location: legendLocation.upperRight);
+
+
+            //string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
+            //plt.SaveFig(path);
+            //ChartFilePaths.Add(name, path);
+            //ChartFileNames.Add(name, $"{name}.png");
+            //WriteSuccess($"Created {name}.png -> {path}");
+        }
+
+        private void CreateGraph(Action<Plot> plot, GttChartJobOptions jobOptions, string jobName, string chartName)
+        {
             if (!jobOptions.Create)
             {
-                WriteInfo($"Skipping chart job {name} as per settings");
+                WriteInfo($"Skipping chart job {jobName} as per settings");
                 return;
             }
 
@@ -522,9 +665,12 @@ namespace gttcharts
 
             string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
             plt.SaveFig(path);
-            ChartFilePaths.Add(name, path);
-            ChartFileNames.Add(name, $"{name}.png");
-            WriteSuccess($"Created {name}.png -> {path}");
+            if (!ChartFileNames.ContainsKey(jobName))
+            {
+                ChartFileNames.Add(jobName, new List<string>());
+            }
+            ChartFileNames[jobName].Add($"{chartName}.png");
+            WriteSuccess($"Created {chartName}.png -> {path}");
         }
 
         private double Round(double d)

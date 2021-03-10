@@ -139,6 +139,9 @@ namespace gttcharts
             AddJobOption(nameof(PerLabelPie), "Time per Label (Pie) [hours]", string.Empty, string.Empty);
             AddJobOption(nameof(UserPerMilestone), "Time per User per Milestone (Bar) [hours]", "Milestone", "Time");
             AddJobOption(nameof(MilestonePerUser), "Time per Milestone per User (Bar) [hours]", "User", "Time");
+            AddJobOption(nameof(ProjectBurndown), "Burndown chart for project", "Time", "Number of issues");
+            AddJobOption(nameof(MilestonesBurndown), "Burndown chart for each milestone", "Time", "Number of issues");
+
 
             return localDict;
         }
@@ -212,6 +215,18 @@ namespace gttcharts
         }
 
         public GttChartJobOptions MilestonePerUser
+        {
+            get => GetOption();
+            set => SetOption(value);
+        }
+
+        public GttChartJobOptions ProjectBurndown
+        {
+            get => GetOption();
+            set => SetOption(value);
+        }
+
+        public GttChartJobOptions MilestonesBurndown
         {
             get => GetOption();
             set => SetOption(value);
