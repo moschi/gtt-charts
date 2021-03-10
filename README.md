@@ -4,6 +4,8 @@ gtt-charts is a small cli application written in .NET 5 which allows the automat
 
 It requires [GitHub - kriskbx/gitlab-time-tracker: 🦊🕘 A command line interface for GitLab's time tracking feature](https://github.com/kriskbx/gitlab-time-tracker) to get the time tracking data from gitlab and builds on the scripts provided in [Samuel / GitLabTimeTrackingTutorial · GitLab (hsr.ch)](https://gitlab.dev.ifs.hsr.ch/murthy10/GitLabTimeTrackingTutorial). Said scripts were altered slightly to include Labels and Milestones in the issue table.
 
+The charts are generated using the awesome [ScottPlot/ScottPlot: Interactive Plotting Library for .NET (github.com)](https://github.com/ScottPlot/ScottPlot) project.
+
 The exported SQLite database is then loaded by gtt-charts and processed into a number of charts which are listed further down.
 
 A complete example for a resulting markdown file can be found [here](./example/Timereport.md).
