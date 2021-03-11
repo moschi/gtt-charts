@@ -178,16 +178,17 @@ namespace gttcharts
                                              where !options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
-                                                 Record = r,
+                                                 User = r.User,
+                                                 Time = r.Time,
                                                  Week = utils.WeekNrFromDate(r.Date)
                                              })
-                                 group re by new { re.Record.User, re.Week }
+                                 group re by new { re.User, re.Week }
                                  into lst
                                  select new
                                  {
                                      User = lst.Key.User,
                                      Week = lst.Key.Week,
-                                     Records = lst
+                                     TotalTime = lst.Sum(e => e.Time)
                                  };
 
             var perUser = from pu in perUserAndWeek
@@ -200,30 +201,32 @@ namespace gttcharts
                           };
 
             // is used to offset later calculated Y-Value
-            double[] baseYs = new double[utils.GetTotalWeekCount()];
-            List<double[]> yss = new();
+            double[] cumulatedYValues = new double[utils.GetTotalWeekCount()];
+
+            // contains all Y values
+            List<double[]> yValuesList = new();
 
             foreach (var pu in perUser)
             {
-                double[] ys = new double[utils.GetTotalWeekCount()];
+                double[] perUserYValues = new double[utils.GetTotalWeekCount()];
                 for (int i = 0; i < utils.GetTotalWeekCount(); i++)
                 {
                     // we don't need to round here since the values aren't displayed in the chart
-                    ys[i] = pu.Weeks.Where(w => w.Week == i + 1).Sum(w => w.Records.Sum(r => r.Record.Time));
+                    perUserYValues[i] = pu.Weeks.Where(w => w.Week == i + 1).Sum(w => w.TotalTime);
                 }
-                for (int i = 0; i < ys.Length; i++)
+                for (int i = 0; i < perUserYValues.Length; i++)
                 {
                     // offset from 'lower' lines is added
-                    ys[i] += baseYs[i];
-                    baseYs[i] = ys[i];
+                    perUserYValues[i] += cumulatedYValues[i];
+                    cumulatedYValues[i] = perUserYValues[i];
                 }
-                yss.Add(ys);
+                yValuesList.Add(perUserYValues);
             }
 
-            // yss is reversed in order to 'layer' the filled areas accordingly so colors are displayed correctly
-            yss.Reverse();
+            // yValuesList is reversed in order to 'layer' the filled areas accordingly so colors are displayed correctly
+            yValuesList.Reverse();
             int puIndex = 0;
-            foreach (var ys in yss)
+            foreach (var ys in yValuesList)
             {
                 var sig = plt.PlotSignal(ys, label: utils.GetMappedName(perUser.ElementAt(puIndex++).User));
                 sig.fillType = FillType.FillBelow;
@@ -244,16 +247,17 @@ namespace gttcharts
                                              where !options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
-                                                 Record = r,
+                                                 User = r.User,
+                                                 Time = r.Time,
                                                  Week = utils.WeekNrFromDate(r.Date)
                                              })
-                                 group re by new { re.Record.User, re.Week }
-                                 into lst
+                                 group re by new { re.User, re.Week }
+                     into lst
                                  select new
                                  {
                                      User = lst.Key.User,
                                      Week = lst.Key.Week,
-                                     Records = lst
+                                     TotalTime = lst.Sum(e => e.Time)
                                  };
 
             var perUser = from pu in perUserAndWeek
@@ -267,12 +271,13 @@ namespace gttcharts
 
             var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
+            // todo: consider refactoring this into foreach->for loop, would reduce complexity of LINQ statement
             for (int i = 0; i < users.Length; i++)
             {
                 datapoints[i] = new double[utils.GetTotalWeekCount()];
                 for (int j = 0; j < utils.GetTotalWeekCount(); j++)
                 {
-                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(rs => rs.Records.Sum(r => r.Record.Time))));
+                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Sum(w => w.TotalTime)));
                 }
             }
 
@@ -285,16 +290,8 @@ namespace gttcharts
 
         private void CreateTimePerLabelBar(Plot plt)
         {
-            // count issues that have more than one label which isn't ignored
-            if (issues.Count(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1) > 0)
-            {
-                StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
-                StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
-                foreach (var issue in issues.Where(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1))
-                {
-                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
-                }
-            }
+            utils.WarnIfIssuesWithMultipleActiveLabels();
+
             var labels = utils.GetLabels();
             var inflatedIssues = from i in issues
                                  from l in labels
@@ -328,18 +325,9 @@ namespace gttcharts
 
         private void CreateTimePerLabelPie(Plot plt)
         {
-            // todo: remove duplicate code
+            // todo: duplicate code 
+            utils.WarnIfIssuesWithMultipleActiveLabels();
 
-            // count issues that have more than one label which isn't ignored
-            if (issues.Count(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1) > 0)
-            {
-                StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
-                StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
-                foreach (var issue in issues.Where(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1))
-                {
-                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
-                }
-            }
             var labels = utils.GetLabels();
             var inflatedIssues = from i in issues
                                  from l in labels
@@ -401,7 +389,13 @@ namespace gttcharts
                 datapoints[i] = new double[utils.GetMilestones().Length];
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
-                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                    datapoints[i][j] = utils.Round(
+                        perUser.Where(pu => pu.User == users[i])
+                        .Sum(ms => 
+                            ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j])
+                            .Sum(rs => rs.Records.Sum(r => r.Time))
+                            )
+                        );
                 }
             }
 
@@ -414,6 +408,7 @@ namespace gttcharts
 
         private void CreateMilestonePerUser(Plot plt)
         {
+            // todo: duplicate code
             var perUserAndMilestone = from r in records
                                       join i in issues
                                       on r.Iid equals i.Iid
@@ -444,7 +439,13 @@ namespace gttcharts
                 datapoints[i] = new double[utils.GetUsernames().Length];
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
-                    datapoints[i][j] = utils.Round(perMilestone.Where(pm => pm.Milestone == milestones[i]).Sum(us => us.Users.Where(u => u.User == utils.GetUsernames()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                    datapoints[i][j] = utils.Round(
+                        perMilestone.Where(pm => pm.Milestone == milestones[i])
+                        .Sum(us => 
+                            us.Users.Where(u => u.User == utils.GetUsernames()[j])
+                            .Sum(rs => rs.Records.Sum(r => r.Time))
+                            )
+                        );
                 }
             }
             plt.PlotBarGroups(
