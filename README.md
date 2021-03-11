@@ -398,38 +398,29 @@ dotnet build .\gttcharts\gttcharts.csproj
 
 ### Using gttcharts
 
-1. run a .csv export in *gitlab-time-tracker*
-   include all the following columns to create a valid table of issues:
-
-   - iid
-   - title
-   - spent
-   - total_estimate
-   - labels
-   - milestone
-- state
+1. run a .csv export in *gitlab-time-tracker*, use the following command
    
-   - created_at
-- closed
-   - updated_at
-   
-   also, make sure you include closed issues with the ``--closed`` flag
-
-   the command I use looks like this:
-
-   ```powershell
-   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./scripts/times.csv
+```powershell
+   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./times.csv
    ```
    
    
    
-2. run the *SQLite creation scripts* in the script folder
+2. run the *SQLite creation scripts* in the script folder, use the following command
+   (you might need to adjust the filepaths, depending on your setup)
+
+   ```
+   python pygtt.py -i ../times.issues.csv -r ../times.records.csv
+   ```
+
+   
 
 3. run *gttcharts*, make sure you have appropriate appsettings.json
    You can run gttcharts from the top level directory of this repo with the following command:
 
-   ```powershell
+   ```
    dotnet run --project .\gttcharts\gttcharts.csproj
    ```
 
    
+
