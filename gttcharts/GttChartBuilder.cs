@@ -31,6 +31,7 @@ namespace gttcharts
         public readonly bool InitSuccessful;
 
         private readonly GttChartBuilderUtils utils;
+        private readonly GttDataQueryProvider dataProvider;
 
         public GttChartBuilder(GttChartsOptions options)
         {
@@ -52,6 +53,7 @@ namespace gttcharts
                     records = context.Records.ToList();
                 }
                 utils = new GttChartBuilderUtils(issues, records, this.options);
+                dataProvider = new GttDataQueryProvider(issues, records, options, utils);
             }
             catch (SqliteException ex)
             {
@@ -112,16 +114,7 @@ namespace gttcharts
 
         private void CreateTimePerMilestone(Plot plt)
         {
-            var perMilestone = from i in issues
-                               where !options.IgnoreMilestones.Contains(i.Milestone)
-                               group i by i.Milestone
-                               into lst
-                               select new
-                               {
-                                   Milestone = lst.Key,
-                                   Estimate = utils.Round(lst.Sum(i => i.TotalEstimate)),
-                                   Spent = utils.Round(lst.Sum(i => i.Spent))
-                               };
+            var perMilestone = dataProvider.GetTimesPerMilestones();
 
             string[] milestonenames = perMilestone.Select(i => i.Milestone).ToArray();
             double[] estimates = perMilestone.Select(p => p.Estimate).ToArray();
@@ -152,15 +145,7 @@ namespace gttcharts
 
         private void CreateTimePerUser(Plot plt)
         {
-            var perUser = from r in records
-                          where !options.IgnoreUsers.Contains(r.User)
-                          group r by r.User
-                          into lst
-                          select new
-                          {
-                              User = lst.Key,
-                              Spent = utils.Round(lst.Sum(r => r.Time))
-                          };
+            var perUser = dataProvider.GetTimePerUsers();
 
             string[] users = utils.GetMappedNames(perUser.Select(p => p.User).ToArray());
             double[] spent = perUser.Select(p => p.Spent).ToArray();
@@ -174,31 +159,7 @@ namespace gttcharts
 
         private void CreateTimePerUserPerWeekArea(Plot plt)
         {
-            var perUserAndWeek = from re in (from r in records
-                                             where !options.IgnoreUsers.Contains(r.User)
-                                             select new
-                                             {
-                                                 User = r.User,
-                                                 Time = r.Time,
-                                                 Week = utils.WeekNrFromDate(r.Date)
-                                             })
-                                 group re by new { re.User, re.Week }
-                                 into lst
-                                 select new
-                                 {
-                                     User = lst.Key.User,
-                                     Week = lst.Key.Week,
-                                     TotalTime = lst.Sum(e => e.Time)
-                                 };
-
-            var perUser = from pu in perUserAndWeek
-                          group pu by pu.User
-                          into list
-                          select new
-                          {
-                              User = list.Key,
-                              Weeks = list
-                          };
+            var perUserWeeks = dataProvider.GetTimePerUserWeeks();
 
             // is used to offset later calculated Y-Value
             double[] cumulatedYValues = new double[utils.GetTotalWeekCount()];
@@ -206,7 +167,7 @@ namespace gttcharts
             // contains all Y values
             List<double[]> yValuesList = new();
 
-            foreach (var pu in perUser)
+            foreach (var pu in perUserWeeks)
             {
                 double[] perUserYValues = new double[utils.GetTotalWeekCount()];
                 for (int i = 0; i < utils.GetTotalWeekCount(); i++)
@@ -228,7 +189,7 @@ namespace gttcharts
             int puIndex = 0;
             foreach (var ys in yValuesList)
             {
-                var sig = plt.PlotSignal(ys, label: utils.GetMappedName(perUser.ElementAt(puIndex++).User));
+                var sig = plt.PlotSignal(ys, label: utils.GetMappedName(perUserWeeks.ElementAt(puIndex++).User));
                 sig.fillType = FillType.FillBelow;
                 sig.fillColor1 = sig.color;
                 sig.gradientFillColor1 = sig.color;
@@ -242,32 +203,7 @@ namespace gttcharts
 
         private void CreateTimePerUserPerWeekBar(Plot plt)
         {
-            // todo: remove duplicate code
-            var perUserAndWeek = from re in (from r in records
-                                             where !options.IgnoreUsers.Contains(r.User)
-                                             select new
-                                             {
-                                                 User = r.User,
-                                                 Time = r.Time,
-                                                 Week = utils.WeekNrFromDate(r.Date)
-                                             })
-                                 group re by new { re.User, re.Week }
-                     into lst
-                                 select new
-                                 {
-                                     User = lst.Key.User,
-                                     Week = lst.Key.Week,
-                                     TotalTime = lst.Sum(e => e.Time)
-                                 };
-
-            var perUser = from pu in perUserAndWeek
-                          group pu by pu.User
-                          into list
-                          select new
-                          {
-                              User = list.Key,
-                              Weeks = list
-                          };
+            var perUserWeeks = dataProvider.GetTimePerUserWeeks();
 
             var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
@@ -277,7 +213,7 @@ namespace gttcharts
                 datapoints[i] = new double[utils.GetTotalWeekCount()];
                 for (int j = 0; j < utils.GetTotalWeekCount(); j++)
                 {
-                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Sum(w => w.TotalTime)));
+                    datapoints[i][j] = utils.Round(perUserWeeks.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j+1).Sum(w => w.TotalTime)));
                 }
             }
 
@@ -290,27 +226,8 @@ namespace gttcharts
 
         private void CreateTimePerLabelBar(Plot plt)
         {
-            utils.WarnIfIssuesWithMultipleActiveLabels();
-
             var labels = utils.GetLabels();
-            var inflatedIssues = from i in issues
-                                 from l in labels
-                                 where i.LabelList.Contains(l)
-                                 select new
-                                 {
-                                     Label = l,
-                                     Issue = i
-                                 };
-
-            var perLabel = from ii in inflatedIssues
-                           group ii by ii.Label
-                           into list
-                           select new
-                           {
-                               Label = list.Key,
-                               Estimate = utils.Round(list.Sum(i => i.Issue.TotalEstimate)),
-                               Spent = utils.Round(list.Sum(i => i.Issue.Spent))
-                           };
+            var perLabel = dataProvider.GetTimesPerLabels();
 
             double[] estimates = perLabel.Select(p => p.Estimate).ToArray();
             double[] spents = perLabel.Select(p => p.Spent).ToArray();
@@ -325,28 +242,8 @@ namespace gttcharts
 
         private void CreateTimePerLabelPie(Plot plt)
         {
-            // todo: duplicate code 
-            utils.WarnIfIssuesWithMultipleActiveLabels();
-
             var labels = utils.GetLabels();
-            var inflatedIssues = from i in issues
-                                 from l in labels
-                                 where i.LabelList.Contains(l)
-                                 select new
-                                 {
-                                     Label = l,
-                                     Issue = i
-                                 };
-
-            var perLabel = from ii in inflatedIssues
-                           group ii by ii.Label
-                           into list
-                           select new
-                           {
-                               Label = list.Key,
-                               Estimate = utils.Round(list.Sum(i => i.Issue.TotalEstimate)),
-                               Spent = utils.Round(list.Sum(i => i.Issue.Spent))
-                           };
+            var perLabel = dataProvider.GetTimesPerLabels();
 
             double[] spents = perLabel.Select(p => p.Spent).ToArray();
 
@@ -359,28 +256,7 @@ namespace gttcharts
 
         private void CreateUserPerMilestone(Plot plt)
         {
-            var perUserAndMilestone = from r in records
-                                      join i in issues
-                                      on r.Iid equals i.Iid
-                                      where !options.IgnoreMilestones.Contains(i.Milestone)
-                                      where !options.IgnoreUsers.Contains(r.User)
-                                      group r by new { i.Milestone, r.User }
-                                      into lst
-                                      select new
-                                      {
-                                          User = lst.Key.User,
-                                          Milestone = lst.Key.Milestone,
-                                          Records = lst
-                                      };
-
-            var perUser = from pu in perUserAndMilestone
-                          group pu by pu.User
-                          into list
-                          select new
-                          {
-                              User = list.Key,
-                              Milestones = list
-                          };
+            var perUserMilestones = dataProvider.GetTimePerUserMilestones();
 
             var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
@@ -390,7 +266,7 @@ namespace gttcharts
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
                     datapoints[i][j] = utils.Round(
-                        perUser.Where(pu => pu.User == users[i])
+                        perUserMilestones.Where(pu => pu.User == users[i])
                         .Sum(ms => 
                             ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j])
                             .Sum(rs => rs.Records.Sum(r => r.Time))
@@ -408,29 +284,7 @@ namespace gttcharts
 
         private void CreateMilestonePerUser(Plot plt)
         {
-            // todo: duplicate code
-            var perUserAndMilestone = from r in records
-                                      join i in issues
-                                      on r.Iid equals i.Iid
-                                      where !options.IgnoreMilestones.Contains(i.Milestone)
-                                      where !options.IgnoreUsers.Contains(r.User)
-                                      group r by new { i.Milestone, r.User }
-                                      into lst
-                                      select new
-                                      {
-                                          User = lst.Key.User,
-                                          Milestone = lst.Key.Milestone,
-                                          Records = lst
-                                      };
-
-            var perMilestone = from pu in perUserAndMilestone
-                               group pu by pu.Milestone
-                               into list
-                               select new
-                               {
-                                   Milestone = list.Key,
-                                   Users = list
-                               };
+            var perMilestoneUsers = dataProvider.GetTimePerMilestoneUsers();
             var milestones = utils.GetMilestones();
             var datapoints = new double[milestones.Length][];
 
@@ -440,7 +294,7 @@ namespace gttcharts
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
                     datapoints[i][j] = utils.Round(
-                        perMilestone.Where(pm => pm.Milestone == milestones[i])
+                        perMilestoneUsers.Where(pm => pm.Milestone == milestones[i])
                         .Sum(us => 
                             us.Users.Where(u => u.User == utils.GetUsernames()[j])
                             .Sum(rs => rs.Records.Sum(r => r.Time))
