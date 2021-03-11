@@ -118,31 +118,7 @@ namespace gttcharts
                    {
                        User = lst.Key.User,
                        Milestone = lst.Key.Milestone,
-                       Records = lst
-                   };
-        }
-
-        public IEnumerable<TimePerUserMilestones> GetTimePerUserMilestones()
-        {
-            return from pu in GetTimePerUserAndMilestones()
-                   group pu by pu.User
-                   into list
-                   select new TimePerUserMilestones
-                   {
-                       User = list.Key,
-                       Milestones = list
-                   };
-        }
-
-        public IEnumerable<TimePerMilestoneUsers> GetTimePerMilestoneUsers()
-        {
-            return from pu in GetTimePerUserAndMilestones()
-                   group pu by pu.Milestone
-                   into list
-                   select new TimePerMilestoneUsers
-                   {
-                       Milestone = list.Key,
-                       Users = list
+                       TotalTime = lst.Sum(r => r.Time)
                    };
         }
     }
@@ -184,18 +160,6 @@ namespace gttcharts
     {
         public string User { get; init; }
         public string Milestone { get; init; }
-        public IEnumerable<Record> Records { get; init; }
-    }
-
-    public record TimePerUserMilestones
-    {
-        public string User { get; init; }
-        public IEnumerable<TimePerUserAndMilestone> Milestones { get; init; }
-    }
-
-    public record TimePerMilestoneUsers
-    {
-        public string Milestone { get; init; }
-        public IEnumerable<TimePerUserAndMilestone> Users { get; set; }
+        public double TotalTime { get; init; }
     }
 }

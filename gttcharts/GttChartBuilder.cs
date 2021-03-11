@@ -213,7 +213,7 @@ namespace gttcharts
                 datapoints[i] = new double[utils.GetTotalWeekCount()];
                 for (int j = 0; j < utils.GetTotalWeekCount(); j++)
                 {
-                    datapoints[i][j] = utils.Round(perUserWeeks.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j+1).Sum(w => w.TotalTime)));
+                    datapoints[i][j] = utils.Round(perUserWeeks.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(w => w.TotalTime)));
                 }
             }
 
@@ -256,8 +256,7 @@ namespace gttcharts
 
         private void CreateUserPerMilestone(Plot plt)
         {
-            var perUserMilestones = dataProvider.GetTimePerUserMilestones();
-
+            var perMilestoneAndUser = dataProvider.GetTimePerUserAndMilestones();
             var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
             for (int i = 0; i < users.Length; i++)
@@ -266,12 +265,9 @@ namespace gttcharts
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
                     datapoints[i][j] = utils.Round(
-                        perUserMilestones.Where(pu => pu.User == users[i])
-                        .Sum(ms => 
-                            ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j])
-                            .Sum(rs => rs.Records.Sum(r => r.Time))
-                            )
-                        );
+                        perMilestoneAndUser
+                            .Where(p => p.User == users[i] && p.Milestone == utils.GetMilestones()[j])
+                            .Sum(rs => rs.TotalTime));
                 }
             }
 
@@ -284,7 +280,7 @@ namespace gttcharts
 
         private void CreateMilestonePerUser(Plot plt)
         {
-            var perMilestoneUsers = dataProvider.GetTimePerMilestoneUsers();
+            var perMilestoneAndUser = dataProvider.GetTimePerUserAndMilestones();
             var milestones = utils.GetMilestones();
             var datapoints = new double[milestones.Length][];
 
@@ -294,12 +290,9 @@ namespace gttcharts
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
                     datapoints[i][j] = utils.Round(
-                        perMilestoneUsers.Where(pm => pm.Milestone == milestones[i])
-                        .Sum(us => 
-                            us.Users.Where(u => u.User == utils.GetUsernames()[j])
-                            .Sum(rs => rs.Records.Sum(r => r.Time))
-                            )
-                        );
+                        perMilestoneAndUser
+                            .Where(p => p.Milestone == milestones[i] && p.User == utils.GetUsernames()[j])
+                            .Sum(rs => rs.TotalTime));
                 }
             }
             plt.PlotBarGroups(
