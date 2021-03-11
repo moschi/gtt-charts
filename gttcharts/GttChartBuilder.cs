@@ -203,17 +203,16 @@ namespace gttcharts
 
         private void CreateTimePerUserPerWeekBar(Plot plt)
         {
-            var perUserWeeks = dataProvider.GetTimePerUserWeeks();
+            var perUserAndWeek = dataProvider.GetTimePerUserAndWeeks();
 
             var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
-            // todo: consider refactoring this into foreach->for loop, would reduce complexity of LINQ statement
             for (int i = 0; i < users.Length; i++)
             {
                 datapoints[i] = new double[utils.GetTotalWeekCount()];
                 for (int j = 0; j < utils.GetTotalWeekCount(); j++)
                 {
-                    datapoints[i][j] = utils.Round(perUserWeeks.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(w => w.TotalTime)));
+                    datapoints[i][j] = utils.Round(perUserAndWeek.Where(p => p.User == users[i] && p.Week == j + 1).Sum(w => w.TotalTime));
                 }
             }
 
