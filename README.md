@@ -402,10 +402,10 @@ dotnet build .\gttcharts\gttcharts.csproj
    
 ```powershell
    gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./times.csv
-   ```
+```
+
    
-   
-   
+
 2. run the *SQLite creation scripts* in the script folder, use the following command
    (you might need to adjust the filepaths, depending on your setup)
 
@@ -422,5 +422,29 @@ dotnet build .\gttcharts\gttcharts.csproj
    dotnet run --project .\gttcharts\gttcharts.csproj
    ```
 
-   
+
+I recommend creating a script that does all of these steps, a powershell script (depending on your setup) could look something like this:
+
+```powershell
+npm run timeExport;
+python ./scripts/pygtt.py -i ./scripts/times.issues.csv -r ./scripts/times.records.csv;
+./gttcharts/gttcharts.exe -db "gtt.db" -o "myoutput";
+```
+
+In order for this script to work, you'll need to have a setup that looks like this:
+
+```
+projectfolder
+│   .gtt.yml				<contains config for gitlab-time-tracker>
+│   gttchartsettings.json	<contains settings for gttcharts>
+│   package.json			<contains npm tasks, one of which must be named timeExport and look as specified above>
+│
+├───gttcharts
+│       binaries			<contains all binaries of gttcharts>
+│
+├───myoutput				<placeholder folder for your desired output location>
+└───scripts					<must contain the python scripts for creating sqlite database>
+        pygtt.py
+        __init__.py
+```
 
