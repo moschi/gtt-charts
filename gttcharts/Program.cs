@@ -18,7 +18,7 @@ namespace gttcharts
         static async Task Main(string[] args)
         {
             using IHost host = CreateHostBuilder(args).Build();
-            var chartBuilder = new GttChartsBuilder(Options);
+            var chartBuilder = new GttChartBuilder(Options);
             if (chartBuilder.InitSuccessful)
             {
                 chartBuilder.RunAll();

@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace gttcharts
 {
-    public class GttChartsBuilder
+    public class GttChartBuilder
     {
         private string InternalImageOutputFolderPath = string.Empty;
         private string RelativeMarkdownAssetFolderPath = string.Empty;
@@ -32,7 +32,7 @@ namespace gttcharts
 
         private readonly GttChartBuilderUtils utils;
 
-        public GttChartsBuilder(GttChartsOptions options)
+        public GttChartBuilder(GttChartsOptions options)
         {
             _options = options;
 
