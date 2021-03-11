@@ -12,7 +12,8 @@ namespace gttcharts
 {
     class Program
     {
-        // todo: remove
+        // todo: figure out if this is the correct way of handling IConfiguration
+        // todo: should we use DI to make the configuration available in the whole project
         static GttChartsOptions Options;
         static async Task Main(string[] args)
         {
