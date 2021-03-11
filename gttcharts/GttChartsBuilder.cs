@@ -33,7 +33,6 @@ namespace gttcharts
         public GttChartsBuilder(GttChartsOptions options)
         {
             _options = options;
-            //_options.Print();
 
             if (!File.Exists(_options.DatabasePath))
             {
