@@ -39,6 +39,32 @@ namespace gttcharts
         public Dictionary<string, string> UsernameMapping { get; set; } = new();
 
         public GttChartJobOptionContainer GttChartJobOptions { get; set; } = new GttChartJobOptionContainer();
+
+        /// <summary>
+        /// Returns output directory with trailing slash
+        /// </summary>
+        /// <returns></returns>
+        public string GetOutputPath()
+        {
+            if (HasOutputPath())
+            {
+                string outputDirectory = OutputDirectory;
+                if (!outputDirectory.EndsWith("/"))
+                {
+                    outputDirectory += "/";
+                }
+                return outputDirectory;
+            }
+            else
+            {
+                return "./";
+            }
+        }
+
+        public bool HasOutputPath()
+        {
+            return OutputDirectory.Trim() != string.Empty && OutputDirectory is not null;
+        }
     }
 
     // originally using a dictionary was planned - but it seems the whole property is overwritten, not allowing for default values.

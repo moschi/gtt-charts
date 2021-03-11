@@ -66,15 +66,15 @@ namespace gttcharts
 
         public void RunAll()
         {
-            if (options.OutputDirectory is not "" && options.OutputDirectory is not null)
+            if (options.HasOutputPath())
             {
-                Directory.CreateDirectory(options.OutputDirectory);
+                Directory.CreateDirectory(options.GetOutputPath());
                 InternalImageOutputFolderPath = options.OutputDirectory;
             }
 
             if (options.MarkdownAssetFolder && options.CreateMarkdownOutput)
             {
-                InternalImageOutputFolderPath = $"{((options.OutputDirectory is not "" && options.OutputDirectory is not null) ? $"{options.OutputDirectory}/" : string.Empty)}{options.MarkdownOutputName}.assets";
+                InternalImageOutputFolderPath = $"{options.GetOutputPath()}{options.MarkdownOutputName}.assets";
                 RelativeMarkdownAssetFolderPath = $"{options.MarkdownOutputName}.assets";
                 Directory.CreateDirectory(InternalImageOutputFolderPath);
             }
