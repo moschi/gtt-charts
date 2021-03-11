@@ -431,15 +431,15 @@ In order for this script to work, you'll need to have a setup that looks like th
 
 ```
 projectfolder
-│   .gtt.yml  <contains config for gitlab-time-tracker>
-│   gttchartsettings.json	<contains settings for gttcharts>
-│   package.json  <contains npm tasks, one of which must be named timeExport and look as specified above>
+│   .gtt.yml                <contains config for gitlab-time-tracker>
+│   gttchartsettings.json	  <contains settings for gttcharts>
+│   package.json            <contains npm tasks, one of which must be named timeExport and look as specified above>
 │
 ├───gttcharts
-│       binaries  <contains all binaries of gttcharts>
+│       binaries            <contains all binaries of gttcharts>
 │
-├───myoutput  <placeholder folder for your desired output location>
-└───scripts <must contain the python scripts for creating sqlite database>
+├───myoutput                <placeholder folder for your desired output location>
+└───scripts                 <must contain the python scripts for creating sqlite database>
         pygtt.py
         __init__.py
 ```
