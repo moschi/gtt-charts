@@ -22,14 +22,14 @@ namespace gttcharts
             if (chartBuilder.InitSuccessful)
             {
                 chartBuilder.RunAll();
-                Console.WriteLine("Finished!");
+                StyledConsoleWriter.WriteInfo("Finished!");
                 await host.StopAsync();
                 return;
             }
             else
             {
-                Console.WriteLine("Chartbuilder did not initialize correctly. Please see above output.");
-                Console.WriteLine("Exiting...");
+                StyledConsoleWriter.WriteError("Chartbuilder did not initialize correctly. Please see above output.");
+                StyledConsoleWriter.WriteInfo("Exiting...");
                 await host.StopAsync();
                 return;
             }
