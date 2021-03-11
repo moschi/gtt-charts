@@ -401,7 +401,7 @@ dotnet build .\gttcharts\gttcharts.csproj
 1. run a .csv export in *gitlab-time-tracker*, use the following command
    
 ```powershell
-   gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./times.csv
+gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./scripts/times.csv
 ```
 
    
@@ -410,17 +410,13 @@ dotnet build .\gttcharts\gttcharts.csproj
    (you might need to adjust the filepaths, depending on your setup)
 
    ```
-   python pygtt.py -i ../times.issues.csv -r ../times.records.csv
+   python pygtt.py -i ./times.issues.csv -r ./times.records.csv
    ```
 
    
 
 3. run *gttcharts*, make sure you have appropriate gttchartsettings.json
-   You can run gttcharts from the top level directory of this repo with the following command:
-
-   ```
-   dotnet run --project .\gttcharts\gttcharts.csproj
-   ```
+   
 
 
 I recommend creating a script that does all of these steps, a powershell script (depending on your setup) could look something like this:
