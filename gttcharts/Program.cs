@@ -43,8 +43,8 @@ namespace gttcharts
                 IHostEnvironment env = hostingContext.HostingEnvironment;
 
                 configuration
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                    .AddJsonFile("gttchartsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile($"gttchartsettings.{env.EnvironmentName}.json", true, true)
                     .AddCommandLine(args, new Dictionary<string, string>
                     {
                         { "-db", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },

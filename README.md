@@ -30,7 +30,7 @@ To set up ``gitlab-time-tracker`` please follow the documentation provided there
 
 ## Configuration options
 
-gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/appsettings.json). The configuration file named *appsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
+gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/gttchartsettings.json). The configuration file named *gttchartsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
 
 ### List of configurations options
 
@@ -350,7 +350,7 @@ Specifies the label the Y-axis of the chart produced by this job will have. Set 
 
 ### Command Line arguments
 
-Some configuration can also be done trough command line arguments. Command line arguments override the configuration values in appsettings.json.
+Some configuration can also be done trough command line arguments. Command line arguments override the configuration values in gttchartsettings.json.
 The following table gives an overview:
 
 | Name                 | Short key | Alias key           | Expects      |
@@ -415,7 +415,7 @@ dotnet build .\gttcharts\gttcharts.csproj
 
    
 
-3. run *gttcharts*, make sure you have appropriate appsettings.json
+3. run *gttcharts*, make sure you have appropriate gttchartsettings.json
    You can run gttcharts from the top level directory of this repo with the following command:
 
    ```

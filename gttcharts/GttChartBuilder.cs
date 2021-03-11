@@ -39,7 +39,7 @@ namespace gttcharts
 
             if (!File.Exists(this.options.DatabasePath))
             {
-                StyledConsoleWriter.WriteError($"The database file wasn't found: {this.options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
+                StyledConsoleWriter.WriteError($"The database file wasn't found: {this.options.DatabasePath}. Make sure you have specified the correct path in gttchartsettings.json");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace gttcharts
             catch (SqliteException ex)
             {
                 StyledConsoleWriter.WriteError($"An error occured when trying to load data from the database: {ex.Message}");
-                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in appsettings.json and the database has a valid schema");
+                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in gttchartsettings.json and the database has a valid schema");
                 return;
             }
             InitSuccessful = true;
@@ -317,7 +317,7 @@ namespace gttcharts
             // call custom plot function for each job
             plot(plt);
 
-            // apply jobOptions which are defined in appsettings.json
+            // apply jobOptions which are defined in gttchartsettings.json
             plt.Title(jobOptions.Title);
             plt.XLabel(jobOptions.XLabel);
             plt.YLabel(jobOptions.YLabel);

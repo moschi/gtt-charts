@@ -56,7 +56,7 @@ namespace gttcharts
         {
             if (!options.UsernameMapping.TryGetValue(username, out string name))
             {
-                StyledConsoleWriter.WriteWarning($"There was no mapping for username [{username}] provided. Consider doing so in appsettings.json");
+                StyledConsoleWriter.WriteWarning($"There was no mapping for username [{username}] provided. Consider doing so in gttchartsettings.json");
                 name = username;
             }
             return name;
