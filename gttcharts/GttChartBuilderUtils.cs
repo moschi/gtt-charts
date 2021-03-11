@@ -1,0 +1,106 @@
+﻿using gttcharts.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace gttcharts
+{
+    public class GttChartBuilderUtils
+    {
+        private readonly IEnumerable<Issue> issues;
+        private readonly IEnumerable<Record> records;
+        private readonly GttChartsOptions options;
+
+        public GttChartBuilderUtils(IEnumerable<Issue> issues, IEnumerable<Record> records, GttChartsOptions options)
+        {
+            this.issues = issues;
+            this.records = records;
+            this.options = options;
+        }
+
+        public string[] GetUsernames()
+        {
+            return (from r in records
+                    where !options.IgnoreUsers.Contains(r.User)
+                    group r by r.User
+                        into lst
+                    select new
+                    {
+                        User = lst.Key
+                    }).Select(u => u.User).ToArray();
+        }
+
+        public string[] GetMappedNames()
+        {
+            return GetMappedNames(GetUsernames());
+        }
+
+        public string[] GetMappedNames(string[] usernames)
+        {
+            if (options.UsernameMapping.Count == 0)
+            {
+                return usernames;
+            }
+
+            string[] names = new string[usernames.Length];
+
+            for (int i = 0; i < usernames.Length; i++)
+            {
+                names[i] = GetMappedName(usernames[i]);
+            }
+
+            return names;
+        }
+
+        public string GetMappedName(string username)
+        {
+            if (!options.UsernameMapping.TryGetValue(username, out string name))
+            {
+                StyledConsoleWriter.WriteWarning($"There was no mapping for username [{username}] provided. Consider doing so in appsettings.json");
+                name = username;
+            }
+            return name;
+        }
+
+        public string[] GetMilestones()
+        {
+            return (from i in issues
+                    where !options.IgnoreMilestones.Contains(i.Milestone)
+                    group i by i.Milestone
+                    into lst
+                    select new
+                    {
+                        Milestone = lst.Key
+                    }).Select(m => m.Milestone).ToArray();
+        }
+
+        public string[] GetLabels()
+        {
+            return issues.SelectMany(i => i.LabelList).Distinct().Except(options.IgnoreLabels).ToArray();
+        }
+
+        public double Round(double d)
+        {
+            return Math.Round(d, options.RoundToDecimals);
+        }
+
+        public int WeekNrFromDate(DateTime date)
+        {
+            // always compare to end of project week
+            DateTime runner = options.ProjectStart.AddDays(7);
+            int weeknr = 1;
+            while (runner < date)
+            {
+                runner = runner.AddDays(7);
+                weeknr++;
+            }
+
+            return weeknr;
+        }
+
+        public int GetTotalWeekCount()
+        {
+            return WeekNrFromDate(options.ProjectEnd);
+        }
+    }
+}

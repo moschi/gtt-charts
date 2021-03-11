@@ -30,13 +30,15 @@ namespace gttcharts
 
         public readonly bool InitSuccessful;
 
+        private readonly GttChartBuilderUtils utils;
+
         public GttChartsBuilder(GttChartsOptions options)
         {
             _options = options;
 
             if (!File.Exists(_options.DatabasePath))
             {
-                WriteError($"The database file wasn't found: {_options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
+                StyledConsoleWriter.WriteError($"The database file wasn't found: {_options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
                 return;
             }
 
@@ -49,11 +51,12 @@ namespace gttcharts
                     _issues = context.Issues.ToList();
                     _records = context.Records.ToList();
                 }
+                utils = new GttChartBuilderUtils(_issues, _records, _options);
             }
             catch (SqliteException ex)
             {
-                WriteError($"An error occured when trying to load data from the database: {ex.Message}");
-                WriteWarning($"Make sure you have specified the correct path in appsettings.json and the database has a valid schema");
+                StyledConsoleWriter.WriteError($"An error occured when trying to load data from the database: {ex.Message}");
+                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in appsettings.json and the database has a valid schema");
                 return;
             }
             InitSuccessful = true;
@@ -103,7 +106,7 @@ namespace gttcharts
             }
 
             File.WriteAllText($"{_options.OutputDirectory}/{_options.MarkdownOutputName}.md", markdownBuilder.ToString());
-            WriteSuccess($"Created Markdown Output --> {_options.OutputDirectory}/{_options.MarkdownOutputName}.md");
+            StyledConsoleWriter.WriteSuccess($"Created Markdown Output --> {_options.OutputDirectory}/{_options.MarkdownOutputName}.md");
         }
 
 
@@ -116,8 +119,8 @@ namespace gttcharts
                                select new
                                {
                                    Milestone = lst.Key,
-                                   Estimate = Round(lst.Sum(i => i.TotalEstimate)),
-                                   Spent = Round(lst.Sum(i => i.Spent))
+                                   Estimate = utils.Round(lst.Sum(i => i.TotalEstimate)),
+                                   Spent = utils.Round(lst.Sum(i => i.Spent))
                                };
 
             string[] milestonenames = perMilestone.Select(i => i.Milestone).ToArray();
@@ -135,8 +138,8 @@ namespace gttcharts
         {
             var perIssue = _issues.Where(i => i.TotalEstimate > 0 || !_options.IgnoreEmptyIssues);
             string[] issues = perIssue.Select(i => i.Title).ToArray();
-            double[] estimates = perIssue.Select(p => Round(p.TotalEstimate)).ToArray();
-            double[] spent = perIssue.Select(p => Round(p.Spent)).ToArray();
+            double[] estimates = perIssue.Select(p => utils.Round(p.TotalEstimate)).ToArray();
+            double[] spent = perIssue.Select(p => utils.Round(p.Spent)).ToArray();
 
             plt.PlotBarGroups(
                 issues,
@@ -156,10 +159,10 @@ namespace gttcharts
                           select new
                           {
                               User = lst.Key,
-                              Spent = Round(lst.Sum(r => r.Time))
+                              Spent = utils.Round(lst.Sum(r => r.Time))
                           };
 
-            string[] users = GetMappedNames(perUser.Select(p => p.User).ToArray());
+            string[] users = utils.GetMappedNames(perUser.Select(p => p.User).ToArray());
             double[] spent = perUser.Select(p => p.Spent).ToArray();
 
             plt.PlotPie(spent, users, showLabels: false, showValues: true);
@@ -176,7 +179,7 @@ namespace gttcharts
                                              select new
                                              {
                                                  Record = r,
-                                                 Week = WeekNrFromDate(r.Date)
+                                                 Week = utils.WeekNrFromDate(r.Date)
                                              })
                                  group re by new { re.Record.User, re.Week }
                                  into lst
@@ -197,13 +200,13 @@ namespace gttcharts
                           };
 
             // is used to offset later calculated Y-Value
-            double[] baseYs = new double[GetTotalWeekCount()];
+            double[] baseYs = new double[utils.GetTotalWeekCount()];
             List<double[]> yss = new();
 
             foreach (var pu in perUser)
             {
-                double[] ys = new double[GetTotalWeekCount()];
-                for (int i = 0; i < GetTotalWeekCount(); i++)
+                double[] ys = new double[utils.GetTotalWeekCount()];
+                for (int i = 0; i < utils.GetTotalWeekCount(); i++)
                 {
                     // we don't need to round here since the values aren't displayed in the chart
                     ys[i] = pu.Weeks.Where(w => w.Week == i + 1).Sum(w => w.Records.Sum(r => r.Record.Time));
@@ -222,7 +225,7 @@ namespace gttcharts
             int puIndex = 0;
             foreach (var ys in yss)
             {
-                var sig = plt.PlotSignal(ys, label: GetMappedName(perUser.ElementAt(puIndex++).User));
+                var sig = plt.PlotSignal(ys, label: utils.GetMappedName(perUser.ElementAt(puIndex++).User));
                 sig.fillType = FillType.FillBelow;
                 sig.fillColor1 = sig.color;
                 sig.gradientFillColor1 = sig.color;
@@ -230,7 +233,7 @@ namespace gttcharts
 
             plt.XLabel("Week");
             plt.YLabel("Hours");
-            plt.XTicks(Enumerable.Range(1, GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray());
+            plt.XTicks(Enumerable.Range(1, utils.GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray());
             plt.AxisBounds(minY: 0);
         }
 
@@ -242,7 +245,7 @@ namespace gttcharts
                                              select new
                                              {
                                                  Record = r,
-                                                 Week = WeekNrFromDate(r.Date)
+                                                 Week = utils.WeekNrFromDate(r.Date)
                                              })
                                  group re by new { re.Record.User, re.Week }
                                  into lst
@@ -262,20 +265,20 @@ namespace gttcharts
                               Weeks = list
                           };
 
-            var users = GetUsernames();
+            var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
             for (int i = 0; i < users.Length; i++)
             {
-                datapoints[i] = new double[GetTotalWeekCount()];
-                for (int j = 0; j < GetTotalWeekCount(); j++)
+                datapoints[i] = new double[utils.GetTotalWeekCount()];
+                for (int j = 0; j < utils.GetTotalWeekCount(); j++)
                 {
-                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(rs => rs.Records.Sum(r => r.Record.Time))));
+                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(wks => wks.Weeks.Where(w => w.Week == j + 1).Sum(rs => rs.Records.Sum(r => r.Record.Time))));
                 }
             }
 
             plt.PlotBarGroups(
-                Enumerable.Range(1, GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray(),
-                GetMappedNames(users),
+                Enumerable.Range(1, utils.GetTotalWeekCount()).Select((i) => $"Week {i}").ToArray(),
+                utils.GetMappedNames(users),
                 datapoints
                 );
         }
@@ -285,14 +288,14 @@ namespace gttcharts
             // count issues that have more than one label which isn't ignored
             if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
             {
-                WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
-                WriteInfo($"The following issues will be reported multiple times:");
+                StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
                 foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
                 {
-                    WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
                 }
             }
-            var labels = GetLabels();
+            var labels = utils.GetLabels();
             var inflatedIssues = from i in _issues
                                  from l in labels
                                  where i.LabelList.Contains(l)
@@ -308,8 +311,8 @@ namespace gttcharts
                            select new
                            {
                                Label = list.Key,
-                               Estimate = Round(list.Sum(i => i.Issue.TotalEstimate)),
-                               Spent = Round(list.Sum(i => i.Issue.Spent))
+                               Estimate = utils.Round(list.Sum(i => i.Issue.TotalEstimate)),
+                               Spent = utils.Round(list.Sum(i => i.Issue.Spent))
                            };
 
             double[] estimates = perLabel.Select(p => p.Estimate).ToArray();
@@ -330,14 +333,14 @@ namespace gttcharts
             // count issues that have more than one label which isn't ignored
             if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
             {
-                WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
-                WriteInfo($"The following issues will be reported multiple times:");
+                StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
+                StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
                 foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
                 {
-                    WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
                 }
             }
-            var labels = GetLabels();
+            var labels = utils.GetLabels();
             var inflatedIssues = from i in _issues
                                  from l in labels
                                  where i.LabelList.Contains(l)
@@ -353,8 +356,8 @@ namespace gttcharts
                            select new
                            {
                                Label = list.Key,
-                               Estimate = Round(list.Sum(i => i.Issue.TotalEstimate)),
-                               Spent = Round(list.Sum(i => i.Issue.Spent))
+                               Estimate = utils.Round(list.Sum(i => i.Issue.TotalEstimate)),
+                               Spent = utils.Round(list.Sum(i => i.Issue.Spent))
                            };
 
             double[] spents = perLabel.Select(p => p.Spent).ToArray();
@@ -391,20 +394,20 @@ namespace gttcharts
                               Milestones = list
                           };
 
-            var users = GetUsernames();
+            var users = utils.GetUsernames();
             var datapoints = new double[users.Length][];
             for (int i = 0; i < users.Length; i++)
             {
-                datapoints[i] = new double[GetMilestones().Length];
+                datapoints[i] = new double[utils.GetMilestones().Length];
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
-                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
                 }
             }
 
             plt.PlotBarGroups(
-                GetMilestones(),
-                GetMappedNames(users),
+                utils.GetMilestones(),
+                utils.GetMappedNames(users),
                 datapoints,
                 showValues: true);
         }
@@ -433,19 +436,19 @@ namespace gttcharts
                                    Milestone = list.Key,
                                    Users = list
                                };
-            var milestones = GetMilestones();
+            var milestones = utils.GetMilestones();
             var datapoints = new double[milestones.Length][];
 
             for (int i = 0; i < milestones.Length; i++)
             {
-                datapoints[i] = new double[GetUsernames().Length];
+                datapoints[i] = new double[utils.GetUsernames().Length];
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
-                    datapoints[i][j] = Round(perMilestone.Where(pm => pm.Milestone == milestones[i]).Sum(us => us.Users.Where(u => u.User == GetUsernames()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                    datapoints[i][j] = utils.Round(perMilestone.Where(pm => pm.Milestone == milestones[i]).Sum(us => us.Users.Where(u => u.User == utils.GetUsernames()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
                 }
             }
             plt.PlotBarGroups(
-                GetMappedNames(),
+                utils.GetMappedNames(),
                 milestones,
                 datapoints,
                 showValues: true);
@@ -453,76 +456,12 @@ namespace gttcharts
 
         #endregion Graphing
 
-        #region HelperFunctions
-
-        private string[] GetUsernames()
-        {
-            return (from r in _records
-                    where !_options.IgnoreUsers.Contains(r.User)
-                    group r by r.User
-                        into lst
-                    select new
-                    {
-                        User = lst.Key
-                    }).Select(u => u.User).ToArray();
-        }
-
-        private string[] GetMappedNames()
-        {
-            return GetMappedNames(GetUsernames());
-        }
-
-        private string[] GetMappedNames(string[] usernames)
-        {
-            if (_options.UsernameMapping.Count == 0)
-            {
-                WriteWarning("There was no username -> name mapping provided. Consider doing so in appsettings.json");
-                return usernames;
-            }
-
-            string[] names = new string[usernames.Length];
-
-            for (int i = 0; i < usernames.Length; i++)
-            {
-                names[i] = GetMappedName(usernames[i]);
-            }
-
-            return names;
-        }
-
-        private string GetMappedName(string username)
-        {
-            if (!_options.UsernameMapping.TryGetValue(username, out string name))
-            {
-                WriteWarning($"There was no mapping for username [{username}] provided. Consider doing so in appsettings.json");
-                name = username;
-            }
-            return name;
-        }
-
-        private string[] GetMilestones()
-        {
-            return (from i in _issues
-                    where !_options.IgnoreMilestones.Contains(i.Milestone)
-                    group i by i.Milestone
-                    into lst
-                    select new
-                    {
-                        Milestone = lst.Key
-                    }).Select(m => m.Milestone).ToArray();
-        }
-
-        private string[] GetLabels()
-        {
-            return _issues.SelectMany(i => i.LabelList).Distinct().Except(_options.IgnoreLabels).ToArray();
-        }
-
         private void CreateGraph(Action<Plot> plot, string name)
         {
             var jobOptions = _options.GttChartJobOptions[name];
             if (!jobOptions.Create)
             {
-                WriteInfo($"Skipping chart job {name} as per settings");
+                StyledConsoleWriter.WriteInfo($"Skipping chart job {name} as per settings");
                 return;
             }
 
@@ -544,65 +483,7 @@ namespace gttcharts
             plt.SaveFig(path);
             ChartFilePaths.Add(name, path);
             ChartFileNames.Add(name, $"{name}.png");
-            WriteSuccess($"Created {name}.png -> {path}");
+            StyledConsoleWriter.WriteSuccess($"Created {name}.png -> {path}");
         }
-
-        private double Round(double d)
-        {
-            return Math.Round(d, _options.RoundToDecimals);
-        }
-
-        private int WeekNrFromDate(DateTime date)
-        {
-            // always compare to end of project week
-            DateTime runner = _options.ProjectStart.AddDays(7);
-            int weeknr = 1;
-            while (runner < date)
-            {
-                runner = runner.AddDays(7);
-                weeknr++;
-            }
-
-            return weeknr;
-        }
-
-        private int GetTotalWeekCount()
-        {
-            return WeekNrFromDate(_options.ProjectEnd);
-        }
-
-        #endregion
-
-        #region ConsoleOutputStyling
-
-        private void WriteInfo(string text)
-        {
-            WriteWithColor(text, ConsoleColor.DarkCyan);
-        }
-
-        private void WriteSuccess(string text)
-        {
-            WriteWithColor(text, ConsoleColor.DarkGreen);
-        }
-
-        private void WriteWarning(string text)
-        {
-            WriteWithColor(text, ConsoleColor.DarkYellow);
-        }
-
-        private void WriteError(string text)
-        {
-            WriteWithColor(text, ConsoleColor.DarkRed);
-        }
-
-        private void WriteWithColor(string text, ConsoleColor color)
-        {
-            var currentColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            Console.WriteLine(text);
-            Console.ForegroundColor = currentColor;
-        }
-
-        #endregion
     }
 }
