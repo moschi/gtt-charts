@@ -39,39 +39,6 @@ namespace gttcharts
         public Dictionary<string, string> UsernameMapping { get; set; } = new();
 
         public GttChartJobOptionContainer GttChartJobOptions { get; set; } = new GttChartJobOptionContainer();
-
-        // todo: should we print all options per default?
-        public void Print()
-        {
-            var currentColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.DarkCyan;
-
-            Console.WriteLine($"GttChartsOptions.{nameof(DatabasePath)}={DatabasePath}");
-            Console.WriteLine($"GttChartsOptions.{nameof(IgnoreEmptyIssues)}={IgnoreEmptyIssues}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(IgnoreLabels)}=[{string.Join(", ", IgnoreLabels)}]");
-            Console.WriteLine($"GttChartsOptions.{nameof(IgnoreMilestones)}=[{string.Join(", ", IgnoreMilestones)}]");
-            Console.WriteLine($"GttChartsOptions.{nameof(IgnoreUsers)}=[{string.Join(", ", IgnoreUsers)}]");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(OutputDirectory)}={OutputDirectory}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(CreateMarkdownOutput)}={CreateMarkdownOutput}");
-            Console.WriteLine($"GttChartsOptions.{nameof(MarkdownOutputName)}={MarkdownOutputName}");
-            Console.WriteLine($"GttChartsOptions.{nameof(MarkdownAssetFolder)}={MarkdownAssetFolder}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(DefaultPlotHeight)}={DefaultPlotHeight}");
-            Console.WriteLine($"GttChartsOptions.{nameof(DefaultPlotWidth)}={DefaultPlotWidth}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(RoundToDecimals)}={RoundToDecimals}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(ProjectStart)}={ProjectStart}");
-            Console.WriteLine($"GttChartsOptions.{nameof(ProjectEnd)}={ProjectEnd}");
-
-            Console.WriteLine($"GttChartsOptions.{nameof(UsernameMapping)}=[{string.Join(", ", UsernameMapping.Select((kvp) => $"{kvp.Key} -> {kvp.Value}"))}]");
-
-
-            Console.ForegroundColor = currentColor;
-        }
     }
 
     // originally using a dictionary was planned - but it seems the whole property is overwritten, not allowing for default values.
