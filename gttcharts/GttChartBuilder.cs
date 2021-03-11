@@ -21,12 +21,12 @@ namespace gttcharts
         private string InternalImageOutputFolderPath = string.Empty;
         private string RelativeMarkdownAssetFolderPath = string.Empty;
 
-        private readonly Dictionary<string, string> ChartFilePaths = new();
-        private readonly Dictionary<string, string> ChartFileNames = new();
+        private readonly Dictionary<string, string> chartFilePaths = new();
+        private readonly Dictionary<string, string> chartFileNames = new();
 
-        private readonly GttChartsOptions _options;
-        private readonly IEnumerable<Issue> _issues;
-        private readonly IEnumerable<Record> _records;
+        private readonly GttChartsOptions options;
+        private readonly IEnumerable<Issue> issues;
+        private readonly IEnumerable<Record> records;
 
         public readonly bool InitSuccessful;
 
@@ -34,24 +34,24 @@ namespace gttcharts
 
         public GttChartBuilder(GttChartsOptions options)
         {
-            _options = options;
+            this.options = options;
 
-            if (!File.Exists(_options.DatabasePath))
+            if (!File.Exists(this.options.DatabasePath))
             {
-                StyledConsoleWriter.WriteError($"The database file wasn't found: {_options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
+                StyledConsoleWriter.WriteError($"The database file wasn't found: {this.options.DatabasePath}. Make sure you have specified the correct path in appsettings.json");
                 return;
             }
 
-            var opt = new DbContextOptionsBuilder<GttContext>().UseSqlite($"DataSource={_options.DatabasePath};");
+            var opt = new DbContextOptionsBuilder<GttContext>().UseSqlite($"DataSource={this.options.DatabasePath};");
 
             try
             {
                 using (var context = new GttContext(opt.Options))
                 {
-                    _issues = context.Issues.ToList();
-                    _records = context.Records.ToList();
+                    issues = context.Issues.ToList();
+                    records = context.Records.ToList();
                 }
-                utils = new GttChartBuilderUtils(_issues, _records, _options);
+                utils = new GttChartBuilderUtils(issues, records, this.options);
             }
             catch (SqliteException ex)
             {
@@ -66,16 +66,16 @@ namespace gttcharts
 
         public void RunAll()
         {
-            if (_options.OutputDirectory is not "" && _options.OutputDirectory is not null)
+            if (options.OutputDirectory is not "" && options.OutputDirectory is not null)
             {
-                Directory.CreateDirectory(_options.OutputDirectory);
-                InternalImageOutputFolderPath = _options.OutputDirectory;
+                Directory.CreateDirectory(options.OutputDirectory);
+                InternalImageOutputFolderPath = options.OutputDirectory;
             }
 
-            if (_options.MarkdownAssetFolder && _options.CreateMarkdownOutput)
+            if (options.MarkdownAssetFolder && options.CreateMarkdownOutput)
             {
-                InternalImageOutputFolderPath = $"{((_options.OutputDirectory is not "" && _options.OutputDirectory is not null) ? $"{_options.OutputDirectory}/" : string.Empty)}{_options.MarkdownOutputName}.assets";
-                RelativeMarkdownAssetFolderPath = $"{_options.MarkdownOutputName}.assets";
+                InternalImageOutputFolderPath = $"{((options.OutputDirectory is not "" && options.OutputDirectory is not null) ? $"{options.OutputDirectory}/" : string.Empty)}{options.MarkdownOutputName}.assets";
+                RelativeMarkdownAssetFolderPath = $"{options.MarkdownOutputName}.assets";
                 Directory.CreateDirectory(InternalImageOutputFolderPath);
             }
 
@@ -90,7 +90,7 @@ namespace gttcharts
             CreateGraph(CreateUserPerMilestone, "UserPerMilestone");
             CreateGraph(CreateMilestonePerUser, "MilestonePerUser");
 
-            if (_options.CreateMarkdownOutput)
+            if (options.CreateMarkdownOutput)
             {
                 CreateMarkdown();
             }
@@ -99,21 +99,21 @@ namespace gttcharts
         private void CreateMarkdown()
         {
             StringBuilder markdownBuilder = new();
-            foreach (var pair in _options.GttChartJobOptions.Where(kvp => kvp.Value.Create == true))
+            foreach (var pair in options.GttChartJobOptions.Where(kvp => kvp.Value.Create == true))
             {
                 markdownBuilder.AppendLine($"## {pair.Value.Title}");
-                markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{ChartFileNames[pair.Key]})");
+                markdownBuilder.AppendLine($"![]({RelativeMarkdownAssetFolderPath}/{chartFileNames[pair.Key]})");
             }
 
-            File.WriteAllText($"{_options.OutputDirectory}/{_options.MarkdownOutputName}.md", markdownBuilder.ToString());
-            StyledConsoleWriter.WriteSuccess($"Created Markdown Output --> {_options.OutputDirectory}/{_options.MarkdownOutputName}.md");
+            File.WriteAllText($"{options.OutputDirectory}/{options.MarkdownOutputName}.md", markdownBuilder.ToString());
+            StyledConsoleWriter.WriteSuccess($"Created Markdown Output --> {options.OutputDirectory}/{options.MarkdownOutputName}.md");
         }
 
 
         private void CreateTimePerMilestone(Plot plt)
         {
-            var perMilestone = from i in _issues
-                               where !_options.IgnoreMilestones.Contains(i.Milestone)
+            var perMilestone = from i in issues
+                               where !options.IgnoreMilestones.Contains(i.Milestone)
                                group i by i.Milestone
                                into lst
                                select new
@@ -136,7 +136,7 @@ namespace gttcharts
 
         private void CreateTimePerIssue(Plot plt)
         {
-            var perIssue = _issues.Where(i => i.TotalEstimate > 0 || !_options.IgnoreEmptyIssues);
+            var perIssue = this.issues.Where(i => i.TotalEstimate > 0 || !options.IgnoreEmptyIssues);
             string[] issues = perIssue.Select(i => i.Title).ToArray();
             double[] estimates = perIssue.Select(p => utils.Round(p.TotalEstimate)).ToArray();
             double[] spent = perIssue.Select(p => utils.Round(p.Spent)).ToArray();
@@ -152,8 +152,8 @@ namespace gttcharts
 
         private void CreateTimePerUser(Plot plt)
         {
-            var perUser = from r in _records
-                          where !_options.IgnoreUsers.Contains(r.User)
+            var perUser = from r in records
+                          where !options.IgnoreUsers.Contains(r.User)
                           group r by r.User
                           into lst
                           select new
@@ -174,8 +174,8 @@ namespace gttcharts
 
         private void CreateTimePerUserPerWeekArea(Plot plt)
         {
-            var perUserAndWeek = from re in (from r in _records
-                                             where !_options.IgnoreUsers.Contains(r.User)
+            var perUserAndWeek = from re in (from r in records
+                                             where !options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
                                                  Record = r,
@@ -240,8 +240,8 @@ namespace gttcharts
         private void CreateTimePerUserPerWeekBar(Plot plt)
         {
             // todo: remove duplicate code
-            var perUserAndWeek = from re in (from r in _records
-                                             where !_options.IgnoreUsers.Contains(r.User)
+            var perUserAndWeek = from re in (from r in records
+                                             where !options.IgnoreUsers.Contains(r.User)
                                              select new
                                              {
                                                  Record = r,
@@ -286,17 +286,17 @@ namespace gttcharts
         private void CreateTimePerLabelBar(Plot plt)
         {
             // count issues that have more than one label which isn't ignored
-            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
+            if (issues.Count(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1) > 0)
             {
                 StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
                 StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
-                foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
+                foreach (var issue in issues.Where(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1))
                 {
-                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
                 }
             }
             var labels = utils.GetLabels();
-            var inflatedIssues = from i in _issues
+            var inflatedIssues = from i in issues
                                  from l in labels
                                  where i.LabelList.Contains(l)
                                  select new
@@ -331,17 +331,17 @@ namespace gttcharts
             // todo: remove duplicate code
 
             // count issues that have more than one label which isn't ignored
-            if (_issues.Count(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1) > 0)
+            if (issues.Count(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1) > 0)
             {
                 StyledConsoleWriter.WriteWarning($"Warning: there are issues that have more than one label to be reported on. This might lead to skewed display of times.");
                 StyledConsoleWriter.WriteInfo($"The following issues will be reported multiple times:");
-                foreach (var issue in _issues.Where(i => i.LabelList.Except(_options.IgnoreLabels).Count() > 1))
+                foreach (var issue in issues.Where(i => i.LabelList.Except(options.IgnoreLabels).Count() > 1))
                 {
-                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(_options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
+                    StyledConsoleWriter.WriteInfo($"Issue #{issue.Iid}: {issue.Title} | Labels: {issue.LabelList.Except(options.IgnoreLabels).Aggregate((a, b) => $"{a}, {b}")}");
                 }
             }
             var labels = utils.GetLabels();
-            var inflatedIssues = from i in _issues
+            var inflatedIssues = from i in issues
                                  from l in labels
                                  where i.LabelList.Contains(l)
                                  select new
@@ -371,11 +371,11 @@ namespace gttcharts
 
         private void CreateUserPerMilestone(Plot plt)
         {
-            var perUserAndMilestone = from r in _records
-                                      join i in _issues
+            var perUserAndMilestone = from r in records
+                                      join i in issues
                                       on r.Iid equals i.Iid
-                                      where !_options.IgnoreMilestones.Contains(i.Milestone)
-                                      where !_options.IgnoreUsers.Contains(r.User)
+                                      where !options.IgnoreMilestones.Contains(i.Milestone)
+                                      where !options.IgnoreUsers.Contains(r.User)
                                       group r by new { i.Milestone, r.User }
                                       into lst
                                       select new
@@ -401,7 +401,7 @@ namespace gttcharts
                 datapoints[i] = new double[utils.GetMilestones().Length];
                 for (int j = 0; j < datapoints[i].Length; j++)
                 {
-                    datapoints[i][j] = Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
+                    datapoints[i][j] = utils.Round(perUser.Where(pu => pu.User == users[i]).Sum(ms => ms.Milestones.Where(m => m.Milestone == utils.GetMilestones()[j]).Sum(rs => rs.Records.Sum(r => r.Time))));
                 }
             }
 
@@ -414,11 +414,11 @@ namespace gttcharts
 
         private void CreateMilestonePerUser(Plot plt)
         {
-            var perUserAndMilestone = from r in _records
-                                      join i in _issues
+            var perUserAndMilestone = from r in records
+                                      join i in issues
                                       on r.Iid equals i.Iid
-                                      where !_options.IgnoreMilestones.Contains(i.Milestone)
-                                      where !_options.IgnoreUsers.Contains(r.User)
+                                      where !options.IgnoreMilestones.Contains(i.Milestone)
+                                      where !options.IgnoreUsers.Contains(r.User)
                                       group r by new { i.Milestone, r.User }
                                       into lst
                                       select new
@@ -458,7 +458,7 @@ namespace gttcharts
 
         private void CreateGraph(Action<Plot> plot, string name)
         {
-            var jobOptions = _options.GttChartJobOptions[name];
+            var jobOptions = options.GttChartJobOptions[name];
             if (!jobOptions.Create)
             {
                 StyledConsoleWriter.WriteInfo($"Skipping chart job {name} as per settings");
@@ -481,8 +481,8 @@ namespace gttcharts
 
             string path = $"./{InternalImageOutputFolderPath}/{jobOptions.Filename}.png";
             plt.SaveFig(path);
-            ChartFilePaths.Add(name, path);
-            ChartFileNames.Add(name, $"{name}.png");
+            chartFilePaths.Add(name, path);
+            chartFileNames.Add(name, $"{name}.png");
             StyledConsoleWriter.WriteSuccess($"Created {name}.png -> {path}");
         }
     }
