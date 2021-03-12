@@ -1,4 +1,5 @@
-﻿using gttcharts.Models;
+﻿using gttcharts.Data;
+using gttcharts.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -52,6 +53,26 @@ namespace gttcharts.Charting
                     issues = context.Issues.ToList();
                     records = context.Records.ToList();
                 }
+                utils = new GttChartBuilderUtils(issues, records, this.options);
+                dataProvider = new GttDataQueryProvider(issues, records, options, utils);
+            }
+            catch (SqliteException ex)
+            {
+                StyledConsoleWriter.WriteError($"An error occured when trying to load data from the database: {ex.Message}");
+                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in gttchartsettings.json and the database has a valid schema");
+                return;
+            }
+            InitSuccessful = true;
+        }
+
+        public GttChartBuilder(GttChartsOptions options, IEnumerable<Issue> issues, IEnumerable<Record> records)
+        {
+            this.options = options;
+
+            try
+            {
+                this.issues = issues;
+                this.records = records;
                 utils = new GttChartBuilderUtils(issues, records, this.options);
                 dataProvider = new GttDataQueryProvider(issues, records, options, utils);
             }

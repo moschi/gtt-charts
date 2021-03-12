@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace gttcharts
+namespace gttcharts.Data
 {
     public partial class GttContext : DbContext
     {

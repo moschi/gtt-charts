@@ -1,4 +1,5 @@
 ﻿using gttcharts.Charting;
+using gttcharts.Data;
 using gttcharts.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -18,8 +19,12 @@ namespace gttcharts
         static GttChartsOptions Options;
         static async Task Main(string[] args)
         {
+
+            var consumer = new GitlabAPIConsumer(new GitlabAPIOptions());
+            var data = await consumer.GetData();
+
             using IHost host = CreateHostBuilder(args).Build();
-            var chartBuilder = new GttChartBuilder(Options);
+            var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
             if (chartBuilder.InitSuccessful)
             {
                 chartBuilder.RunAll();
@@ -34,6 +39,24 @@ namespace gttcharts
                 await host.StopAsync();
                 return;
             }
+
+            return;
+            //using IHost host = CreateHostBuilder(args).Build();
+            //var chartBuilder = new GttChartBuilder(Options);
+            //if (chartBuilder.InitSuccessful)
+            //{
+            //    chartBuilder.RunAll();
+            //    StyledConsoleWriter.WriteInfo("Finished!");
+            //    await host.StopAsync();
+            //    return;
+            //}
+            //else
+            //{
+            //    StyledConsoleWriter.WriteError("Chartbuilder did not initialize correctly. Please see above output.");
+            //    StyledConsoleWriter.WriteInfo("Exiting...");
+            //    await host.StopAsync();
+            //    return;
+            //}
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder()
