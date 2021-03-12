@@ -1,4 +1,5 @@
-﻿using gttcharts.Models;
+﻿using gttcharts.Charting;
+using gttcharts.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ScottPlot;
