@@ -12,15 +12,8 @@ namespace gttcharts.Models
         public string Title { get; set; }
         public double Spent { get; set; }
         public double TotalEstimate { get; set; }
-        public string Labels { get; set; }
-
-        [NotMapped]
-        public ICollection<string> LabelList
-        {
-            get => Labels?.Split(',');
-        }
+        public ICollection<string> LabelList { get; set; }
         public string Milestone { get; set; }
-
         public string State { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool Closed { get; set; }

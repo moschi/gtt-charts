@@ -39,7 +39,7 @@ namespace gttcharts.Data
                     Closed = issue.ClosedAt.HasValue,
                     CreatedAt = issue.CreatedAt,
                     Iid = issue.Iid,
-                    Labels = issue.Labels.Count == 0 ? string.Empty : issue.Labels.Aggregate((a, b) => $"{a},{b}"), // todo: this is stupid, since we split it up again later, fix this when removing EFCore
+                    LabelList = issue.Labels,
                     Milestone = issue.Milestone?.Title ?? string.Empty,
                     Spent = (double)issue.TimeStats.TotalTimeSpent / 60 / 60,
                     State = issue.State.ToString(), // todo: is this correct?

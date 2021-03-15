@@ -1,8 +1,5 @@
 ﻿using gttcharts.Data;
 using gttcharts.Models;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using ScottPlot;
@@ -29,60 +26,16 @@ namespace gttcharts.Charting
         private readonly IEnumerable<Issue> issues;
         private readonly IEnumerable<Record> records;
 
-        public readonly bool InitSuccessful;
-
         private readonly GttChartBuilderUtils utils;
         private readonly GttDataQueryProvider dataProvider;
-
-        public GttChartBuilder(GttChartsOptions options)
-        {
-            this.options = options;
-
-            if (!File.Exists(this.options.DatabasePath))
-            {
-                StyledConsoleWriter.WriteError($"The database file wasn't found: {this.options.DatabasePath}. Make sure you have specified the correct path in gttchartsettings.json");
-                return;
-            }
-
-            var opt = new DbContextOptionsBuilder<GttContext>().UseSqlite($"DataSource={this.options.DatabasePath};");
-
-            try
-            {
-                using (var context = new GttContext(opt.Options))
-                {
-                    issues = context.Issues.ToList();
-                    records = context.Records.ToList();
-                }
-                utils = new GttChartBuilderUtils(issues, records, this.options);
-                dataProvider = new GttDataQueryProvider(issues, records, options, utils);
-            }
-            catch (SqliteException ex)
-            {
-                StyledConsoleWriter.WriteError($"An error occured when trying to load data from the database: {ex.Message}");
-                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in gttchartsettings.json and the database has a valid schema");
-                return;
-            }
-            InitSuccessful = true;
-        }
 
         public GttChartBuilder(GttChartsOptions options, IEnumerable<Issue> issues, IEnumerable<Record> records)
         {
             this.options = options;
-
-            try
-            {
                 this.issues = issues;
                 this.records = records;
                 utils = new GttChartBuilderUtils(issues, records, this.options);
                 dataProvider = new GttDataQueryProvider(issues, records, options, utils);
-            }
-            catch (SqliteException ex)
-            {
-                StyledConsoleWriter.WriteError($"An error occured when trying to load data from the database: {ex.Message}");
-                StyledConsoleWriter.WriteWarning($"Make sure you have specified the correct path in gttchartsettings.json and the database has a valid schema");
-                return;
-            }
-            InitSuccessful = true;
         }
 
         #region Graphing

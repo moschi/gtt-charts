@@ -24,21 +24,10 @@ namespace gttcharts
             var consumer = new GitlabAPIConsumer(GitlabAPIOptions);
             var data = await consumer.GetData();
             var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
-            if (chartBuilder.InitSuccessful)
-            {
-                chartBuilder.RunAll();
-                StyledConsoleWriter.WriteInfo("Finished!");
-                await host.StopAsync();
-                return;
-            }
-            else
-            {
-                StyledConsoleWriter.WriteError("Chartbuilder did not initialize correctly. Please see above output.");
-                StyledConsoleWriter.WriteInfo("Exiting...");
-                await host.StopAsync();
-                return;
-            }
 
+            chartBuilder.RunAll();
+            StyledConsoleWriter.WriteInfo("Finished!");
+            await host.StopAsync();
             return;
         }
 
