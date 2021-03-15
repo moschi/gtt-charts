@@ -30,10 +30,5 @@
         "XScaleHeight": 200
       }
     }
-  },
-  "GitlabAPIOptions": {
-    "ApiUrl": "http://gitlab.ost.ch/api/v4/",
-    "Token": "EzztGJ8XMszbrpck2Hjo",
-    "Project": "epj/2021-FS/G04_Carddown/carddown"
   }
 }

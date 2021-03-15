@@ -89,7 +89,6 @@ namespace gttcharts.Charting
 
         public void RunAll()
         {
-            StyledConsoleWriter.WriteInfo("Creating charts...");
             if (options.HasOutputPath())
             {
                 Directory.CreateDirectory(options.GetOutputPath());
