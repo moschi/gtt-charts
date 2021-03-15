@@ -46,11 +46,23 @@ The URL to the gitlab API you want to query.
 
 *required*
 
+```json
+	"ApiUrl": "http://gitlab.com/api/v4/",
+```
+
+
+
 #### Token
 
 Gitlab API token used to query the API
 
 *required*
+
+```json
+	"Token": "abcdefghijklmnopqrst",
+```
+
+
 
 #### Project
 
@@ -58,11 +70,23 @@ Path to the project
 
 *required*
 
+```json
+	"Project": "namespace/projectname",
+```
+
+
+
 #### HoursPerDay
 
 How many hours one day of work has for you
 
 **Default:** 8
+
+```json
+	"HoursPerDay": 8,
+```
+
+
 
 #### DayPerWeek
 
@@ -70,11 +94,23 @@ How many days one week of work has for you
 
 **Default:** 5
 
+```json
+	"DayPerWeek": 5,
+```
+
+
+
 #### WeeksPerMonth
 
 How many weeks one month of work has for you
 
 **Default:** 4
+
+```json
+	"WeeksPerMonth": 5,
+```
+
+
 
 ### GttChartsOptions
 
