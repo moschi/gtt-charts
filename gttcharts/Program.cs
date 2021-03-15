@@ -23,11 +23,20 @@ namespace gttcharts
             using IHost host = CreateHostBuilder(args).Build();
             var consumer = new GitlabAPIConsumer(GitlabAPIOptions);
             var data = await consumer.GetData();
-            var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
+            if (data.success)
+            {
+                var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
+                chartBuilder.RunAll();
+                StyledConsoleWriter.WriteInfo("Finished!");
+                await host.StopAsync();
+            }
+            else
+            {
+                StyledConsoleWriter.WriteInfo("Error when getting data from gitlab.");
+                StyledConsoleWriter.WriteInfo("Stopping...");
+                await host.StopAsync();
+            }
 
-            chartBuilder.RunAll();
-            StyledConsoleWriter.WriteInfo("Finished!");
-            await host.StopAsync();
             return;
         }
 
@@ -63,6 +72,15 @@ namespace gttcharts
 
                         { "-r", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.RoundToDecimals)}" },
                         { "--roundtodecimals", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.RoundToDecimals)}" },
+
+                        { "-tk", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.Token)}" },
+                        { "--token", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.Token)}" },
+
+                        { "-api", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.ApiUrl)}" },
+                        { "--apiurl", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.ApiUrl)}" },
+
+                        { "-prj", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.Project)}" },
+                        { "--project", $"{nameof(GitlabAPIOptions)}:{nameof(GitlabAPIOptions.Project)}" },
                     });
 
                 IConfigurationRoot configurationRoot = configuration.Build();

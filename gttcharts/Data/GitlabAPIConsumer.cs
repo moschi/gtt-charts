@@ -21,14 +21,32 @@ namespace gttcharts.Data
             this.timeParser = new TimeStringParser(options);
         }
 
-        public async Task<(IEnumerable<Models.Issue> issues, IEnumerable<Models.Record> records)> GetData()
+        public async Task<(bool success, IEnumerable<Models.Issue> issues, IEnumerable<Models.Record> records)> GetData()
         {
             ConcurrentBag<Models.Issue> issues = new();
             ConcurrentBag<Models.Record> records = new();
             StyledConsoleWriter.WriteInfo($"Calling Gitlab API...");
-            var client = new GitLabClient(options.ApiUrl, options.Token);
+            GitLabClient client;
+            try
+            {
+                client = new GitLabClient(options.ApiUrl, options.Token);
+            }
+            catch(Exception ex)
+            {
+                StyledConsoleWriter.WriteError($"Error when creating GitLabAPIClient: {ex.Message}");
+                return (false, null, null);
+            }
             StyledConsoleWriter.WriteInfo($"Gettings issues...");
-            var issuesList = await client.Issues.GetAllAsync(options.Project, options: o => o.State = GitLabApiClient.Models.Issues.Responses.IssueState.All);
+            IList<GitLabApiClient.Models.Issues.Responses.Issue> issuesList;
+            try
+            {
+                issuesList = await client.Issues.GetAllAsync(options.Project, options: o => o.State = GitLabApiClient.Models.Issues.Responses.IssueState.All);
+            }
+            catch (Exception ex)
+            {
+                StyledConsoleWriter.WriteError($"Error when getting issues from GitLab: {ex.Message}");
+                return (false, null, null);
+            }
             StyledConsoleWriter.WriteInfo($"Found {issuesList.Count} issues");
 
             foreach(var issue in issuesList)
@@ -71,7 +89,7 @@ namespace gttcharts.Data
                 });
             }
 
-            return (issues, records);
+            return (true, issues, records);
         }
     }
 }

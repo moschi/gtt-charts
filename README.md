@@ -417,7 +417,7 @@ Specifies the label the Y-axis of the chart produced by this job will have. Set 
 ### Command Line arguments
 
 Some configuration can also be done trough command line arguments. Command line arguments override the configuration values in gttchartsettings.json.
-The following table gives an overview:
+The following table gives an overview for arguments in the **GttChartsOptions** section:
 
 | Name                 | Short key | Alias key           | Expects      |
 | -------------------- | --------- | ------------------- | ------------ |
@@ -429,7 +429,13 @@ The following table gives an overview:
 | DefaultPlotWidth     | -dpw      | --defaultplotwidth  | integer      |
 | RoundToDecimals      | -r        | --roundtodecimals   | integer      |
 
+The following table gives an overview for arguments in the **GitlabAPIOptions** section:
 
+| Name    | Short key | Alias key | Expects              |
+| ------- | --------- | --------- | -------------------- |
+| Token   | -tk       | --token   | your API Token       |
+| ApiUrl  | -api      | --apiurl  | URL to the API       |
+| Project | -prj      | --project | Path to your project |
 
 
 
