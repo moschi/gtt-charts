@@ -28,7 +28,7 @@ gttcharts allows extensive configuration. A example of a configuration file can 
 
 ### GitlabAPIOptions
 
-These settings are set for information on how to query the Gitlab API. A minimal setup loos like this:
+These settings are set for information on how to query the Gitlab API. A minimal setup looks like this:
 
 ```
   "GitlabAPIOptions": {
