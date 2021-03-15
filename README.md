@@ -8,9 +8,7 @@ A complete example for a resulting markdown file can be found [here](./example/T
 
 ## Requirements
 
-- .NET 5 for gtt-charts
-- Python 3 for running the scripts to create the SQLite DB
-- Node.JS and npm or yarn for running gitlab-time-tracker
+- .NET 5
 
 
 
