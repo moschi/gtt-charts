@@ -43,9 +43,6 @@ namespace gttcharts
                     .AddJsonFile($"gttchartsettings.{env.EnvironmentName}.json", true, true)
                     .AddCommandLine(args, new Dictionary<string, string>
                     {
-                        { "-db", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
-                        { "--database", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
-
                         { "-ie", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
                         { "--ignoreempty", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
 

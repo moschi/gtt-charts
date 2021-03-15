@@ -52,8 +52,8 @@ namespace gttcharts.Data
             this.options = options;
             // todo: should we compile these regexes?
             // slower startup, but faster execution...
-            SpentTimeRegex = new Regex(SpentTimePattern);
-            EstimateTimeRegex = new Regex(EstimateTimePattern);
+            SpentTimeRegex = new Regex(SpentTimePattern, RegexOptions.Compiled);
+            EstimateTimeRegex = new Regex(EstimateTimePattern, RegexOptions.Compiled);
             TimeRegex = new Regex(TimePattern);
         }
 
@@ -83,6 +83,7 @@ namespace gttcharts.Data
         private double ParseTimeString(string timeString)
         {
             // todo: handle failing parse
+            // todo: possibly allow for manually entering time when failing to parse...
 
             var match = TimeRegex.Match(timeString);
 

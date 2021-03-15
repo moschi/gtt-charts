@@ -16,7 +16,6 @@ namespace gttcharts.Charting
             GttChartJobOptions.AfterInit(DefaultPlotHeight, DefaultPlotWidth, DefaultYScaleWidth, DefaultXScaleHeight);
         }
 
-        public string DatabasePath { get; set; } = "data.db";
         public bool IgnoreEmptyIssues { get; set; } = true;
         public ICollection<string> IgnoreLabels { get; set; } = new List<string>();
         public ICollection<string> IgnoreMilestones { get; set; } = new List<string>() { "Test" };

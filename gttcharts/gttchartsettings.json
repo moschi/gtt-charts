@@ -1,7 +1,6 @@
 ﻿{
   "GttChartsOptions": {
     "IgnoreEmptyIssues": true,
-    "DatabasePath": "../scripts/gtt.db",
     "IgnoreLabels": [
       "To Do",
       "Doing",
@@ -32,8 +31,5 @@
     }
   },
   "GitlabAPIOptions": {
-    "ApiUrl": "http://gitlab.ost.ch/api/v4/",
-    "Token": "",
-    "Project": "epj/2021-FS/G04_Carddown/carddown"
   }
 }

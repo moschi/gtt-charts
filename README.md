@@ -1,16 +1,10 @@
 # gtt-charts
 
-gtt-charts is a cli application written in .NET 5 which allows the automatic creation of graphs, optionally included in a markdown file, of time tracking in gitlab.
-
-It requires [GitHub - kriskbx/gitlab-time-tracker: 🦊🕘 A command line interface for GitLab's time tracking feature](https://github.com/kriskbx/gitlab-time-tracker) to get the time tracking data from gitlab and builds on the scripts provided in [Samuel / GitLabTimeTrackingTutorial · GitLab (hsr.ch)](https://gitlab.dev.ifs.hsr.ch/murthy10/GitLabTimeTrackingTutorial). Said scripts were altered slightly to include Labels and Milestones in the issue table.
-
-The exported SQLite database is then loaded by gtt-charts and processed into a number of charts which are listed further down.
+gtt-charts is a cli application written in .NET 5 which allows the automatic creation of graphs, optionally included in a markdown file, of time tracking in gitlab. It uses the Gitlab API to get information about issues and time tracking entries. Parsing logic was adapted from [kriskbx/gitlab-time-tracker: 🦊🕘 A command line interface for GitLab's time tracking feature. (github.com)](https://github.com/kriskbx/gitlab-time-tracker).
 
 The charts are generated with the awesome [ScottPlot/ScottPlot: Interactive Plotting Library for .NET (github.com)](https://github.com/ScottPlot/ScottPlot) library.
 
 A complete example for a resulting markdown file can be found [here](./example/Timereport.md).
-
-To set up ``gitlab-time-tracker`` please follow the documentation provided there.
 
 ## Requirements
 
@@ -32,19 +26,57 @@ To set up ``gitlab-time-tracker`` please follow the documentation provided there
 
 gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/gttchartsettings.json). The configuration file named *gttchartsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
 
-### List of configurations options
+### GitlabAPIOptions
 
-#### DatabasePath
+These settings are set for information on how to query the Gitlab API. A minimal setup loos like this:
 
-Path to the SQLite database file.
-
-**Default:** data.db
-
-```json
-	"DatabasePath": "./path/to/database.db",
+```
+  "GitlabAPIOptions": {
+    "ApiUrl": "http://gitlab.com/api/v4/",
+    "Token": "abcdefghijklmnopqrst",
+    "Project": "namespace/projectname"
+  }
 ```
 
 
+
+#### ApiUrl
+
+The URL to the gitlab API you want to query.
+
+*required*
+
+#### Token
+
+Gitlab API token used to query the API
+
+*required*
+
+#### Project
+
+Path to the project
+
+*required*
+
+#### HoursPerDay
+
+How many hours one day of work has for you
+
+**Default:** 8
+
+#### DayPerWeek
+
+How many days one week of work has for you
+
+**Default:** 5
+
+#### WeeksPerMonth
+
+How many weeks one month of work has for you
+
+**Default:** 4
+
+### GttChartsOptions
 
 #### IgnoreEmptyIssues
 
@@ -282,7 +314,7 @@ Specifies the filename for the image a chart-job will produce. Don't include a f
 
 
 
-#### PlotHeight
+##### PlotHeight
 
 Specifies the height (in pixels) the chart produced by this job will have.
 
@@ -290,7 +322,7 @@ Specifies the height (in pixels) the chart produced by this job will have.
 
 
 
-#### PlotWidth
+##### PlotWidth
 
 Specifies the width (in pixels) the chart produced by this job will have.
 
@@ -298,7 +330,7 @@ Specifies the width (in pixels) the chart produced by this job will have.
 
 
 
-#### YScaleWidth
+##### YScaleWidth
 
 Specifies the width (in pixels) the Y-axis of the chart produced by this job will have. This options is important for charts that have long names on the scales of the axis (e.g. the PerIssue chart).
 
@@ -306,7 +338,7 @@ Specifies the width (in pixels) the Y-axis of the chart produced by this job wil
 
 
 
-#### GttChartJobOptions.XScaleHeight
+##### XScaleHeight
 
 Specifies the height (in pixels) the X-axis ot the chart produced by this job will have. This options is important for charts that have long names on the scales of the axis (e.g. the PerIssue chart).
 
@@ -314,13 +346,13 @@ Specifies the height (in pixels) the X-axis ot the chart produced by this job wi
 
 
 
-#### GttChartJobOptions.XLabel
+##### XLabel
 
 Specifies the label the X-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
 
 
 
-#### GttChartJobOptions.YLabel
+##### YLabel
 
 Specifies the label the Y-axis of the chart produced by this job will have. Set to ``null`` to hide the label.
 
@@ -355,7 +387,6 @@ The following table gives an overview:
 
 | Name                 | Short key | Alias key           | Expects      |
 | -------------------- | --------- | ------------------- | ------------ |
-| DatabasePath         | -db       | --database          | string       |
 | IgnoreEmptyIssues    | -ie       | --ignoreempty       | true / false |
 | OutputDirectory      | -o        | --output            | string       |
 | CreateMarkdownOutput | -md       | --createmarkdown    | true / false |
@@ -398,49 +429,4 @@ dotnet build .\gttcharts\gttcharts.csproj
 
 ### Using gttcharts
 
-1. run a .csv export in *gitlab-time-tracker*, use the following command
-   
-```powershell
-gtt report --output=csv --issue_columns=iid --issue_columns=title --issue_columns=spent --issue_columns=total_estimate --issue_columns=labels --issue_columns=milestone --issue_columns=state --issue_columns=created_at --issue_columns=closed --issue_columns=updated_at --closed --file=./scripts/times.csv
-```
-
-   
-
-2. run the *SQLite creation scripts* in the script folder, use the following command
-   (you might need to adjust the filepaths, depending on your setup)
-
-   ```
-   python pygtt.py -i ./times.issues.csv -r ./times.records.csv
-   ```
-
-   
-
-3. run *gttcharts*, make sure you have appropriate gttchartsettings.json
-   
-
-
-I recommend creating a script that does all of these steps, a powershell script (depending on your setup) could look something like this:
-
-```powershell
-npm run timeExport;
-python ./scripts/pygtt.py -i ./scripts/times.issues.csv -r ./scripts/times.records.csv;
-./gttcharts/gttcharts.exe -db "gtt.db" -o "myoutput";
-```
-
-In order for this script to work, you'll need to have a setup that looks like this:
-
-```
-projectfolder
-│   .gtt.yml                <contains config for gitlab-time-tracker>
-│   gttchartsettings.json	  <contains settings for gttcharts>
-│   package.json            <contains npm tasks, one of which must be named timeExport and look as specified above>
-│
-├───gttcharts
-│       binaries            <contains all binaries of gttcharts>
-│
-├───myoutput                <placeholder folder for your desired output location>
-└───scripts                 <must contain the python scripts for creating sqlite database>
-        pygtt.py
-        __init__.py
-```
-
+Simply execute gttcharts.exe, make sure to have appropriate settings.
