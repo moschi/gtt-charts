@@ -1,4 +1,6 @@
-﻿using gttcharts.Models;
+﻿using gttcharts.Charting;
+using gttcharts.Data;
+using gttcharts.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ScottPlot;
@@ -15,24 +17,18 @@ namespace gttcharts
         // todo: figure out if this is the correct way of handling IConfiguration
         // todo: should we use DI to make the configuration available in the whole project
         static GttChartsOptions Options;
+        static GitlabAPIOptions GitlabAPIOptions;
         static async Task Main(string[] args)
         {
             using IHost host = CreateHostBuilder(args).Build();
-            var chartBuilder = new GttChartBuilder(Options);
-            if (chartBuilder.InitSuccessful)
-            {
-                chartBuilder.RunAll();
-                StyledConsoleWriter.WriteInfo("Finished!");
-                await host.StopAsync();
-                return;
-            }
-            else
-            {
-                StyledConsoleWriter.WriteError("Chartbuilder did not initialize correctly. Please see above output.");
-                StyledConsoleWriter.WriteInfo("Exiting...");
-                await host.StopAsync();
-                return;
-            }
+            var consumer = new GitlabAPIConsumer(GitlabAPIOptions);
+            var data = await consumer.GetData();
+            var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
+
+            chartBuilder.RunAll();
+            StyledConsoleWriter.WriteInfo("Finished!");
+            await host.StopAsync();
+            return;
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder()
@@ -47,9 +43,6 @@ namespace gttcharts
                     .AddJsonFile($"gttchartsettings.{env.EnvironmentName}.json", true, true)
                     .AddCommandLine(args, new Dictionary<string, string>
                     {
-                        { "-db", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
-                        { "--database", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.DatabasePath)}" },
-
                         { "-ie", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
                         { "--ignoreempty", $"{nameof(GttChartsOptions)}:{nameof(GttChartsOptions.IgnoreEmptyIssues)}" },
 
@@ -79,6 +72,11 @@ namespace gttcharts
                                  .Bind(options);
                 options.AfterInit();
                 Options = options;
+
+                GitlabAPIOptions gitlabAPIOptions = new();
+                configurationRoot.GetSection(nameof(GitlabAPIOptions))
+                                .Bind(gitlabAPIOptions);
+                GitlabAPIOptions = gitlabAPIOptions;
             });
     }
 }

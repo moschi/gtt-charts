@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace gttcharts
+namespace gttcharts.Charting
 {
     public class GttDataQueryProvider
     {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace gttcharts
+namespace gttcharts.Charting
 {
     public class GttChartBuilderUtils
     {

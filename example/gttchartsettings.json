@@ -1,7 +1,6 @@
 ﻿{
   "GttChartsOptions": {
     "IgnoreEmptyIssues": true,
-    "DatabasePath": "../scripts/gtt.db",
     "IgnoreLabels": [
       "To Do",
       "Doing",
@@ -36,5 +35,10 @@
         "XScaleHeight": 200
       }
     }
+  },
+  "GitlabAPIOptions": {
+    "ApiUrl": "http://gitlab.com/api/v4/",
+    "Token": "abcdefghijklmnopqrst",
+    "Project": "namespace/projectname"
   }
 }

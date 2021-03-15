@@ -1,7 +1,6 @@
 ﻿{
   "GttChartsOptions": {
     "IgnoreEmptyIssues": true,
-    "DatabasePath": "../scripts/gtt.db",
     "IgnoreLabels": [
       "To Do",
       "Doing",
@@ -30,5 +29,7 @@
         "XScaleHeight": 200
       }
     }
+  },
+  "GitlabAPIOptions": {
   }
 }
