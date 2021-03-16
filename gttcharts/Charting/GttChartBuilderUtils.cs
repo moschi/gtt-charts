@@ -89,7 +89,7 @@ namespace gttcharts.Charting
             // always compare to end of project week
             DateTime runner = options.ProjectStart.AddDays(7);
             int weeknr = 1;
-            while (runner < date)
+            while (runner <= date)
             {
                 runner = runner.AddDays(7);
                 weeknr++;
