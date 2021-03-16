@@ -14,7 +14,7 @@ namespace gttcharts.Data
         // We might run slower since the Regex cannot be compiled beforehand (should we decide to do that)
         private const string SpentAtGroupName = "spentat";
         private const string SpentGroupName = "spent";
-        private static string SpentTimePattern = $"(?:added )(?<{SpentGroupName}>.*)(?: of time spent at)(?<{SpentAtGroupName}>.*)";
+        private static string SpentTimePattern = $"(?:[added][subtracted] )(?<{SpentGroupName}>.*)(?: of time spent at)(?<{SpentAtGroupName}>.*)";
 
         private const string EstimateGroupName = "estimate";
         private static string EstimateTimePattern = $"(?:changed time estimate to )(?<{EstimateGroupName}>.*)";
@@ -40,7 +40,7 @@ namespace gttcharts.Data
             };
 
         // todo: possibly break down regex as it is hard to read
-        private const string TimePattern = @"^(?:(?<sign>[-])\s*)?(?:(?<months>\d+)mo\s*)?(?:(?<weeks>\d+)w\s*)?(?:(?<days>\d+)d\s*)?(?:(?<hours>\d+)h\s*)?(?:(?<minutes>\d+)m\s*)?(?:(?<seconds>\d+)s\s*)?$";
+        private const string TimePattern = @"^(?:(?<sign>[subtracted])\s*)?(?:(?<months>\d+)mo\s*)?(?:(?<weeks>\d+)w\s*)?(?:(?<days>\d+)d\s*)?(?:(?<hours>\d+)h\s*)?(?:(?<minutes>\d+)m\s*)?(?:(?<seconds>\d+)s\s*)?$";
 
         private readonly Regex SpentTimeRegex;
         private readonly Regex EstimateTimeRegex;
@@ -62,7 +62,7 @@ namespace gttcharts.Data
             var match = EstimateTimeRegex.Match(note.Body);
             string estimateTimeStr = match.Groups[EstimateGroupName].Value;
 
-            return ParseTimeString(estimateTimeStr);
+            return ParseTimeString(estimateTimeStr, 1);
         }
 
         public (DateTime date, double hours) GetSpentHours(Note note)
@@ -73,32 +73,26 @@ namespace gttcharts.Data
 
             if (!DateTime.TryParse(spentAtDateStr, out DateTime spentAtDate))
             {
-                // todo: warn user
+                StyledConsoleWriter.WriteError($"Could not parse date: {spentAtDateStr} from note body {note.Body}");
             }
 
-            return (spentAtDate, ParseTimeString(spentTimeStr));
+            return (spentAtDate, ParseTimeString(spentTimeStr, note.Body.Contains("subtracted") ? -1 : 1));
         }
 
 
-        private double ParseTimeString(string timeString)
+        private double ParseTimeString(string timeString, int sign)
         {
             // todo: handle failing parse
             // todo: possibly allow for manually entering time when failing to parse...
 
             var match = TimeRegex.Match(timeString);
-
             var valuesDict = new Dictionary<string, int>();
 
-            // Sign needs to be handled outside of the loop, since '-' cannot be parsed to an int (I think)
-            // no sign means positive (mult by 1), a sign means negative (mult by -1)
-            valuesDict.Add(SignKey, match.Groups[SignKey].Success ? -1 : 1);
             foreach (var group in CaptureGroups)
             {
                 valuesDict.Add(group, match.Groups[group].Success ? int.Parse(match.Groups[group].Value) : 0);
             }
 
-            // all values will be multiplied by the sign
-            int sign = valuesDict[SignKey];
             // since we can't put months into the timespan, they'll have to be represented by days
             // same for weeks
             return GetHoursFromTimespan(new TimeSpan(

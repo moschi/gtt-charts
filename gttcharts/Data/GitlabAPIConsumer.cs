@@ -31,7 +31,7 @@ namespace gttcharts.Data
             {
                 client = new GitLabClient(options.ApiUrl, options.Token);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 StyledConsoleWriter.WriteError($"Error when creating GitLabAPIClient: {ex.Message}");
                 return (false, null, null);
@@ -49,7 +49,7 @@ namespace gttcharts.Data
             }
             StyledConsoleWriter.WriteInfo($"Found {issuesList.Count} issues");
 
-            foreach(var issue in issuesList)
+            foreach (var issue in issuesList)
             {
                 issues.Add(new Models.Issue()
                 {
@@ -83,7 +83,9 @@ namespace gttcharts.Data
                             Iid = issue.Iid,
                             Time = timeData.hours,
                             Type = note.NoteableType,
-                            User = note.Author.Username // todo: change this when removing EFCore and reworking Models
+                            User = note.Author.Username, // todo: change this when removing EFCore and reworking Models
+                            NoteIid = note.Iid,
+                            NoteBody = note.Body
                         });
                     }
                 });

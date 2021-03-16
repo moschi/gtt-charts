@@ -12,5 +12,7 @@ namespace gttcharts.Models
         public DateTime Date { get; set; }
         public string Type { get; set; }
         public double Time { get; set; }
+        public int NoteIid { get; set; }
+        public string NoteBody { get; set; }
     }
 }

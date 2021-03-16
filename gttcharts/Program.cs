@@ -18,6 +18,7 @@ namespace gttcharts
         // todo: should we use DI to make the configuration available in the whole project
         static GttChartsOptions Options;
         static GitlabAPIOptions GitlabAPIOptions;
+        static HealthReportOptions HealthReportOptions;
         static async Task Main(string[] args)
         {
             using IHost host = CreateHostBuilder(args).Build();
@@ -25,6 +26,12 @@ namespace gttcharts
             var data = await consumer.GetData();
             if (data.success)
             {
+                if (Options.RunHealthReport)
+                {
+                    var healthReport = new HealthReport(HealthReportOptions, data.issues, data.records);
+                    healthReport.PrintReport();
+                }
+
                 var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
                 chartBuilder.RunAll();
                 StyledConsoleWriter.WriteInfo("Finished!");
@@ -95,6 +102,11 @@ namespace gttcharts
                 configurationRoot.GetSection(nameof(GitlabAPIOptions))
                                 .Bind(gitlabAPIOptions);
                 GitlabAPIOptions = gitlabAPIOptions;
+
+                HealthReportOptions healthReportOptions = new();
+                configurationRoot.GetSection(nameof(HealthReportOptions))
+                                .Bind(healthReportOptions);
+                HealthReportOptions = healthReportOptions;
             });
     }
 }
