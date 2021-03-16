@@ -12,10 +12,4 @@
     <PackageReference Include="ScottPlot" Version="4.0.48" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="gttchartsettings.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
