@@ -2,7 +2,7 @@
 
 gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/gttchartsettings.json). The configuration file named *gttchartsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
 
-There are three sections in the configuration:
+There are two sections in the configuration:
 
 - GitlabAPIOptions
 - GttChartsOptions

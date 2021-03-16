@@ -10,7 +10,7 @@ A complete example for a resulting markdown file can be found [here](./example/T
 
 ## Disclaimer / Acknowledgements
 
-I cannot guarantee that this software will work in your situation, and I cannot guarantee that the reports generated are free of errors. Please do review the charts critically and compare the numbers with the insights possible in GitLab CE.
+I cannot guarantee that this software will work in your situation, and I cannot guarantee that the reports generated are free of errors. Please do review the charts critically and compare the numbers with the insights possible in GitLab.
 
 Should you find any bugs, please create an Issue and - preferably - create a PR that fixes the bug you discovered.
 
