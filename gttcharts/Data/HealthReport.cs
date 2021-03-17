@@ -31,6 +31,8 @@ namespace gttcharts.Data
                 CheckMinimumDate(issue, issueRecords);
                 CheckMaximumDate(issue, issueRecords);
                 CheckZeroDateEntries(issue, issueRecords);
+                CheckTimestatsMatchAggregate(issue, issueRecords);
+                StyledConsoleWriter.WriteInfo("");
             }
             StyledConsoleWriter.WriteSuccess("Healthreport finished!");
         }
@@ -95,6 +97,17 @@ namespace gttcharts.Data
                         StyledConsoleWriter.WriteWarning($"{record.User}; NoteBody: {record.NoteBody}");
                     }
                 }
+            }
+        }
+
+        private void CheckTimestatsMatchAggregate(Issue issue, IEnumerable<Record> issueRecords)
+        {
+            double timeSpent = Math.Round(issue.Spent, 2);
+            double actualTimeSpent = Math.Round(issueRecords.Sum(r => r.Time), 2);
+
+            if (timeSpent != actualTimeSpent)
+            {
+                StyledConsoleWriter.WriteError($"Timestats calculated by gitlab do not match actual aggregate of single records: [gitlab|aggregate] [{timeSpent}|{actualTimeSpent}]");
             }
         }
 

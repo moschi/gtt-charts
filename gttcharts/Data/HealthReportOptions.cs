@@ -11,6 +11,5 @@ namespace gttcharts.Data
         public Dictionary<string, DateTime> IssueHappeningDateMap { get; set; } = new();
         public Dictionary<string, DateTime> IssueMinimumDate { get; set; } = new();
         public Dictionary<string, DateTime> IssueMaximumDate { get; set; } = new();
-        public bool CheckZeroDateEntries { get; set; } = true;
     }
 }

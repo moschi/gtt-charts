@@ -38,6 +38,27 @@ Also, this project needs a review of the code, any feedback is appreciated.
 
 ![image-20210310113639147](README.assets/image-20210310113639147.png)
 
+## Data Health Report
+
+I've introduced this feature for two reasons:
+
+- We used issues as time-tracking for meetings, sometimes we accidentally added time for those meetings on a wrong date. Charts on which one dimension was time would have had a skewed display of reality
+- GitLab sometimes has issues where the timestats of an issue aren't correct. I have not been able to reproduce this, but I wanted to catch these errors.
+
+You can activate the HealthReport by adding the corresponding setting in [GttChartsOptions](./configuration.md#RunHealthReport).
+
+See the configuration for the HealthReport in the [documentation for configuration](./configuration.md#HealthReportOptions).
+
+HealthReport has the ability to check to following things:
+
+- Time spent on an issue isn't on a specific date
+- Time spent on an issue isn't after a specific date
+- Time spent on an issue isn't before a specific date
+- Time spent on an issue has the minimal possible date
+- Total Time spent on an issue taken from timestats (the value you see in Gitlab Web-UI) differs from the aggregate of the single records
+
+
+
 ## Configuration
 
 Please see the [documentation for configuration](./configuration.md).

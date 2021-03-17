@@ -26,12 +26,11 @@ namespace gttcharts
             var data = await consumer.GetData();
             if (data.success)
             {
-                // HealthReport is currently inactive, might work on that later...
-                //if (Options.RunHealthReport)
-                //{
-                //    var healthReport = new HealthReport(HealthReportOptions, data.issues, data.records);
-                //    healthReport.PrintReport();
-                //}
+                if (Options.RunHealthReport)
+                {
+                    var healthReport = new HealthReport(HealthReportOptions, data.issues, data.records);
+                    healthReport.PrintReport();
+                }
 
                 var chartBuilder = new GttChartBuilder(Options, data.issues, data.records);
                 chartBuilder.RunAll();

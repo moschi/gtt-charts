@@ -2,10 +2,11 @@
 
 gttcharts allows extensive configuration. A example of a configuration file can be found [here](./example/gttchartsettings.json). The configuration file named *gttchartsettings.json* needs to be in the current working directory, and all paths are relative to the current working directory.
 
-There are two sections in the configuration:
+There are three sections in the configuration:
 
 - GitlabAPIOptions
 - GttChartsOptions
+- HealthReportOptions
 
 
 
@@ -96,6 +97,20 @@ How many weeks one month of work has for you
 
 
 ## GttChartsOptions
+
+### RunHealthReport
+
+If true, a health report (on console output) will be run before creating the charts.
+
+**Default:** false
+
+```json
+	"RunHealthReport": false,
+```
+
+HealthReportOptions has its own section. See [here](#HealthReportOptions). 
+
+
 
 ### IgnoreEmptyIssues
 
@@ -395,6 +410,98 @@ Specifies the label the Y-axis of the chart produced by this job will have. Set 
         "Create": false
       }
     }
+```
+
+
+
+## HealthReportOptions
+
+These settings are for declaring how to run the health report. These settings only have an effect if RunHealthReport is set to true.
+
+### IssueHappeningDateMap
+
+Dictionary that maps the Id of an issue to a Date on which all time-records should be entered on.
+
+**Default:** empty
+
+```json
+    "IssueHappeningDateMap": {
+          "3": "2021-02-25",
+          "18": "2021-03-11",
+          "12": "2021-03-05",
+          "5": "2021-03-01",
+          "20": "2021-03-15",
+          "19": "2021-03-08",
+          "17": "2021-03-05"
+        }
+```
+
+
+
+### IssueMinimumDate
+
+Dictionary that maps the Id of an issue to a Date after which all time-records should be entered on.
+
+**Default:** empty
+
+```json
+    "IssueMinimumDate": {
+          "23": "2021-02-25",
+          "45": "2021-03-11",
+          "37": "2021-03-05",
+          "2": "2021-03-01",
+          "11": "2021-03-15"
+        }
+```
+
+
+
+### IssueMaximumDate
+
+Dictionary that maps the Id of an issue to a Date before which all time-records should be entered on.
+
+**Default:** empty
+
+```json
+    "IssueMaximumDate": {
+          "23": "2021-03-25",
+          "45": "2021-04-11",
+          "37": "2021-04-05",
+          "2": "2021-04-01",
+          "11": "2021-04-15"
+        }
+```
+
+
+
+### Complete example of section
+
+```json
+  "HealthReportOptions": {
+    "IssueHappeningDateMap": {
+      "3": "2021-02-25",
+      "18": "2021-03-11",
+      "12": "2021-03-05",
+      "5": "2021-03-01",
+      "20": "2021-03-15",
+      "19": "2021-03-08",
+      "17": "2021-03-05"
+    },
+    "IssueMinimumDate": {
+      "23": "2021-02-25",
+      "45": "2021-03-11",
+      "37": "2021-03-05",
+      "2": "2021-03-01",
+      "11": "2021-03-15"
+    },
+    "IssueMaximumDate": {
+      "23": "2021-03-25",
+      "45": "2021-04-11",
+      "37": "2021-04-05",
+      "2": "2021-04-01",
+      "11": "2021-04-15"
+    }
+  }
 ```
 
 

@@ -1,5 +1,6 @@
 ﻿{
   "GttChartsOptions": {
+    "RunHealthReport": true,
     "IgnoreEmptyIssues": true,
     "IgnoreLabels": [
       "To Do",
@@ -40,5 +41,30 @@
     "ApiUrl": "http://gitlab.com/api/v4/",
     "Token": "abcdefghijklmnopqrst",
     "Project": "namespace/projectname"
+  },
+  "HealthReportOptions": {
+    "IssueHappeningDateMap": {
+      "3": "2021-02-25",
+      "18": "2021-03-11",
+      "12": "2021-03-05",
+      "5": "2021-03-01",
+      "20": "2021-03-15",
+      "19": "2021-03-08",
+      "17": "2021-03-05"
+    },
+    "IssueMinimumDate": {
+      "23": "2021-02-25",
+      "45": "2021-03-11",
+      "37": "2021-03-05",
+      "2": "2021-03-01",
+      "11": "2021-03-15"
+    },
+    "IssueMaximumDate": {
+      "23": "2021-03-25",
+      "45": "2021-04-11",
+      "37": "2021-04-05",
+      "2": "2021-04-01",
+      "11": "2021-04-15"
+    }
   }
 }
