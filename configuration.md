@@ -4,9 +4,9 @@ gttcharts allows extensive configuration. A example of a configuration file can 
 
 There are three sections in the configuration:
 
-- GitlabAPIOptions
-- GttChartsOptions
-- HealthReportOptions
+- [GitlabAPIOptions](#GitlabAPIOptions)
+- [GttChartsOptions](#GttChartsOptions)
+- [HealthReportOptions](#HealthReportOptions)
 
 
 
