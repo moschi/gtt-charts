@@ -24,6 +24,7 @@ namespace gttcharts.Charting
                     where !options.IgnoreUsers.Contains(r.User)
                     group r by r.User
                         into lst
+                    orderby lst.Key ascending
                     select new
                     {
                         User = lst.Key

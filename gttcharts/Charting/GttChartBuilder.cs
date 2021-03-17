@@ -108,7 +108,12 @@ namespace gttcharts.Charting
             string[] issues = perIssue.Select(i => i.Title).ToArray();
             double[] estimates = perIssue.Select(p => utils.Round(p.TotalEstimate)).ToArray();
             double[] spent = perIssue.Select(p => utils.Round(p.Spent)).ToArray();
+            //double[] actualSpent = perIssue.Select(p => utils.Round(records.Where(r => r.Iid == p.Iid).Sum(r => r.Time))).ToArray();
 
+            /*
+             new string[] { "estimated", "spent", "actualspent" },
+                new double[][] { estimates, spent, actualSpent },
+             */
             plt.PlotBarGroups(
                 issues,
                 new string[] { "estimated", "spent" },
@@ -142,7 +147,8 @@ namespace gttcharts.Charting
             // contains all Y values
             List<double[]> yValuesList = new();
 
-            foreach (var pu in perUserWeeks)
+            // walk through it reversed, so that alphabetical order of usernames is kept
+            foreach (var pu in perUserWeeks.Reverse())
             {
                 double[] perUserYValues = new double[utils.GetTotalWeekCount()];
                 for (int i = 0; i < utils.GetTotalWeekCount(); i++)
@@ -161,6 +167,7 @@ namespace gttcharts.Charting
 
             // yValuesList is reversed in order to 'layer' the filled areas accordingly so colors are displayed correctly
             yValuesList.Reverse();
+            // no need to reverse-walk usernames, since we've reversed the original data list twice
             int puIndex = 0;
             foreach (var ys in yValuesList)
             {

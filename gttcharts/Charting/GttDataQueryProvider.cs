@@ -40,8 +40,10 @@ namespace gttcharts.Charting
         {
             return from r in records
                    where !options.IgnoreUsers.Contains(r.User)
+                   orderby r.User ascending
                    group r by r.User
                    into lst
+                   orderby lst.Key ascending
                    select new TimePerUser
                    {
                        User = lst.Key,
@@ -53,6 +55,7 @@ namespace gttcharts.Charting
         {
             return from re in (from r in records
                                where !options.IgnoreUsers.Contains(r.User)
+                               orderby r.User ascending
                                select new
                                {
                                    User = r.User,
@@ -61,6 +64,7 @@ namespace gttcharts.Charting
                                })
                    group re by new { re.User, re.Week }
                    into lst
+                   orderby lst.Key.User ascending
                    select new TimePerUserAndWeek
                    {
                        User = lst.Key.User,
@@ -72,8 +76,10 @@ namespace gttcharts.Charting
         public IEnumerable<TimePerUserWeeks> GetTimePerUserWeeks()
         {
             return from pu in GetTimePerUserAndWeeks()
+                   orderby pu.User ascending
                    group pu by pu.User
                    into list
+                   orderby list.Key ascending
                    select new TimePerUserWeeks
                    {
                        User = list.Key,
@@ -108,12 +114,14 @@ namespace gttcharts.Charting
         public IEnumerable<TimePerUserAndMilestone> GetTimePerUserAndMilestones()
         {
             return from r in records
+                   orderby r.User ascending
                    join i in issues
                    on r.Iid equals i.Iid
                    where !options.IgnoreMilestones.Contains(i.Milestone)
                    where !options.IgnoreUsers.Contains(r.User)
                    group r by new { i.Milestone, r.User }
                    into lst
+                   orderby lst.Key.User ascending
                    select new TimePerUserAndMilestone
                    {
                        User = lst.Key.User,
