@@ -87,15 +87,12 @@ namespace gttcharts.Data
 
         private void CheckZeroDateEntries(Issue issue, IEnumerable<Record> issueRecords)
         {
-            if (options.CheckZeroDateEntries)
+            if (issueRecords.Any(r => r.Date == new DateTime()))
             {
-                if (issueRecords.Any(r => r.Date == new DateTime()))
+                StyledConsoleWriter.WriteError($"Found {issueRecords.Count(r => r.Date == new DateTime())} that have date {new DateTime()}!");
+                foreach (var record in issueRecords.Where(r => r.Date == new DateTime()))
                 {
-                    StyledConsoleWriter.WriteError($"Found {issueRecords.Count(r => r.Date == new DateTime())} that have date {new DateTime()}!");
-                    foreach (var record in issueRecords.Where(r => r.Date == new DateTime()))
-                    {
-                        StyledConsoleWriter.WriteWarning($"{record.User}; NoteBody: {record.NoteBody}");
-                    }
+                    StyledConsoleWriter.WriteWarning($"{record.User}; NoteBody: {record.NoteBody}");
                 }
             }
         }
