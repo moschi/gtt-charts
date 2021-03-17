@@ -14,5 +14,6 @@ namespace gttcharts.Models
         public double Time { get; set; }
         public int NoteIid { get; set; }
         public string NoteBody { get; set; }
+        public bool IsInavlidated { get; set; }
     }
 }

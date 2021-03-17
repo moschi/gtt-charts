@@ -32,10 +32,10 @@ namespace gttcharts.Charting
         public GttChartBuilder(GttChartsOptions options, IEnumerable<Issue> issues, IEnumerable<Record> records)
         {
             this.options = options;
-                this.issues = issues;
-                this.records = records;
-                utils = new GttChartBuilderUtils(issues, records, this.options);
-                dataProvider = new GttDataQueryProvider(issues, records, options, utils);
+            this.issues = issues;
+            this.records = records;
+            utils = new GttChartBuilderUtils(issues, records, this.options);
+            dataProvider = new GttDataQueryProvider(issues, records, options, utils);
         }
 
         #region Graphing
@@ -108,12 +108,8 @@ namespace gttcharts.Charting
             string[] issues = perIssue.Select(i => i.Title).ToArray();
             double[] estimates = perIssue.Select(p => utils.Round(p.TotalEstimate)).ToArray();
             double[] spent = perIssue.Select(p => utils.Round(p.Spent)).ToArray();
-            //double[] actualSpent = perIssue.Select(p => utils.Round(records.Where(r => r.Iid == p.Iid).Sum(r => r.Time))).ToArray();
 
-            /*
-             new string[] { "estimated", "spent", "actualspent" },
-                new double[][] { estimates, spent, actualSpent },
-             */
+
             plt.PlotBarGroups(
                 issues,
                 new string[] { "estimated", "spent" },
