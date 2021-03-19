@@ -49,7 +49,7 @@ You can activate the HealthReport by adding the corresponding setting in [GttCha
 
 See the configuration for the HealthReport in the [documentation for configuration](./configuration.md#HealthReportOptions).
 
-HealthReport has the ability to check to following things:
+HealthReport has the ability to check the following things:
 
 - Time spent on an issue isn't on a specific date
 - Time spent on an issue isn't after a specific date
@@ -77,4 +77,4 @@ dotnet build .\gttcharts\gttcharts.csproj
 
 ### Using gttcharts
 
-Simply execute gttcharts.exe, make sure to have appropriate settings.
+Simply execute gttcharts (possibly with command line arguments), make sure to have appropriate settings.
