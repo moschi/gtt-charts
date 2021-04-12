@@ -76,6 +76,7 @@ namespace gttcharts.Charting
         private void CreateMarkdown()
         {
             StringBuilder markdownBuilder = new();
+            markdownBuilder.AppendLine($"#{options.MarkdownOutputTitle}");
             foreach (var pair in options.GttChartJobOptions.Where(kvp => kvp.Value.Create == true))
             {
                 markdownBuilder.AppendLine($"## {pair.Value.Title}");

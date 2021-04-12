@@ -24,6 +24,7 @@ namespace gttcharts.Charting
         public string OutputDirectory { get; set; } = "output";
         public bool CreateMarkdownOutput { get; set; } = true;
         public string MarkdownOutputName { get; set; } = "Timereport";
+        public string MarkdownOutputTitle { get; set; } = "Timerport";
         public bool MarkdownAssetFolder { get; set; } = true;
 
         public int DefaultPlotHeight { get; set; } = 600;
