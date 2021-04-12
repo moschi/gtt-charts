@@ -24,8 +24,9 @@ namespace gttcharts.Charting
 
         public IEnumerable<TimesPerMilestone> GetTimesPerMilestones()
         {
+            var milestones = utils.GetMilestones();
             return from i in issues
-                   where !options.IgnoreMilestones.Contains(i.Milestone)
+                   where milestones.Contains(i.Milestone)
                    group i by i.Milestone
                    into lst
                    select new TimesPerMilestone

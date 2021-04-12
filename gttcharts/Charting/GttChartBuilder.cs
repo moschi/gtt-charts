@@ -92,7 +92,7 @@ namespace gttcharts.Charting
         {
             var perMilestone = dataProvider.GetTimesPerMilestones();
 
-            string[] milestonenames = perMilestone.Select(i => i.Milestone).ToArray();
+            string[] milestonenames = utils.GetMilestones();
             double[] estimates = perMilestone.Select(p => p.Estimate).ToArray();
             double[] spent = perMilestone.Select(p => p.Spent).ToArray();
 
