@@ -19,9 +19,8 @@ namespace gttcharts.Charting
         public bool RunHealthReport { get; set; } = false;
         public bool IgnoreEmptyIssues { get; set; } = true;
         public ICollection<string> IgnoreLabels { get; set; } = new List<string>();
-        public ICollection<string> IgnoreMilestones { get; set; } = new List<string>();
+        public ICollection<string> IgnoreMilestones { get; set; } = new List<string>() { "Test" };
         public ICollection<string> IgnoreUsers { get; set; } = new List<string>();
-        public ICollection<string> MilestonesInOrder { get; set; } = new List<string>();
         public string OutputDirectory { get; set; } = "output";
         public bool CreateMarkdownOutput { get; set; } = true;
         public string MarkdownOutputName { get; set; } = "Timereport";

@@ -65,12 +65,6 @@ namespace gttcharts.Charting
 
         public string[] GetMilestones()
         {
-            // if settings contain the milestones (in order), use those
-            if (options.MilestonesInOrder.Count > 0)
-            {
-                return options.MilestonesInOrder.Except(options.IgnoreMilestones).ToArray();
-            }
-
             return (from i in issues
                     where !options.IgnoreMilestones.Contains(i.Milestone)
                     group i by i.Milestone
